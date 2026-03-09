@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0067)file:///Users/kathyowens/Downloads/wa-landscape-code-tool-v3_1.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WA Landscape Code Tool v3</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="./WA Landscape Code Tool v3 c_files/css2" rel="stylesheet">
 <style>
 :root {
   --forest: #1e3a2f;
@@ -162,16 +162,8 @@ body { font-family: 'Source Sans 3', sans-serif; background: var(--cream); color
   <aside class="sidebar no-print">
 
     <div class="sidebar-card">
-      <div class="sidebar-card-head">📍 Parcel Info</div>
+      <div class="sidebar-card-head">📍 Parcel Lookup</div>
       <div class="sidebar-card-body">
-        <div class="form-group">
-          <label>Parcel Number</label>
-          <input type="text" id="parcelNum" placeholder="e.g. 4015425678">
-        </div>
-        <div class="form-group">
-          <label>Site Address</label>
-          <input type="text" id="siteAddr" placeholder="Street address">
-        </div>
         <div class="form-group">
           <label>Jurisdiction</label>
           <select id="jurisdiction" onchange="onJurisdictionChange()">
@@ -187,7 +179,19 @@ body { font-family: 'Source Sans 3', sans-serif; background: var(--cream); color
           </select>
         </div>
         <div class="form-group">
-          <label>Planning Zone</label>
+          <label>Parcel Number</label>
+          <div style="display:flex;gap:6px">
+            <input type="text" id="parcelNum" placeholder="e.g. 4015425678" style="flex:1">
+            <button onclick="lookupParcel()" style="background:var(--gold);border:none;border-radius:4px;padding:6px 10px;font-size:0.75rem;font-weight:700;color:var(--forest);cursor:pointer;white-space:nowrap">🔍 Lookup</button>
+          </div>
+        </div>
+        <div id="gisStatus" style="display:none;font-size:0.73rem;padding:6px 8px;border-radius:4px;margin-top:4px"></div>
+        <div class="form-group">
+          <label>Site Address</label>
+          <input type="text" id="siteAddr" placeholder="Auto-filled or enter manually">
+        </div>
+        <div class="form-group">
+          <label>Planning Zone <span id="zoneSource" style="font-size:0.65rem;color:var(--gold);font-weight:400;text-transform:none;letter-spacing:0"></span></label>
           <select id="planZone">
             <option value="">— Select Zone —</option>
           </select>
@@ -208,28 +212,32 @@ body { font-family: 'Source Sans 3', sans-serif; background: var(--cream); color
           <label>Site Area (acres)</label>
           <input type="text" id="siteAcres" placeholder="e.g. 1.46">
         </div>
+        <div id="gisViewerLink" style="display:none;margin-top:6px">
+          <a id="gisViewerAnchor" href="file:///Users/kathyowens/Downloads/wa-landscape-code-tool-v3_1.html#" target="_blank" style="font-size:0.73rem;color:var(--gold);text-decoration:none">📂 Open in County GIS Viewer →</a>
+        </div>
       </div>
     </div>
 
     <div class="sidebar-card">
-      <div class="sidebar-card-head">🏘 Adjacent Property Zones</div>
+      <div class="sidebar-card-head">🏘 Adjacent Property Zones <span id="adjGisNote" style="font-size:0.65rem;font-weight:400;color:rgba(168,197,160,0.7);text-transform:none;letter-spacing:0"></span></div>
       <div class="sidebar-card-body">
+        <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);margin-bottom:8px;line-height:1.4" id="adjHint">Select jurisdiction and enter parcel number, then click Lookup to auto-fill adjacent zones where available. Or select manually.</div>
         <div class="adj-grid">
           <div class="adj-item">
             <label>North</label>
-            <select id="adjN"><option value="">—</option><option>Residential SF</option><option>Residential MF</option><option>Commercial</option><option>Industrial</option><option>Mixed Use</option><option>Open Space</option><option>Public/Inst.</option></select>
+            <select id="adjN"><option value="">—</option><option>Residential SF</option><option>Residential MF</option><option>Commercial</option><option>Industrial</option><option>Mixed Use</option><option>Open Space</option><option>Public/Inst.</option><option>ROW/Street</option></select>
           </div>
           <div class="adj-item">
             <label>South</label>
-            <select id="adjS"><option value="">—</option><option>Residential SF</option><option>Residential MF</option><option>Commercial</option><option>Industrial</option><option>Mixed Use</option><option>Open Space</option><option>Public/Inst.</option></select>
+            <select id="adjS"><option value="">—</option><option>Residential SF</option><option>Residential MF</option><option>Commercial</option><option>Industrial</option><option>Mixed Use</option><option>Open Space</option><option>Public/Inst.</option><option>ROW/Street</option></select>
           </div>
           <div class="adj-item">
             <label>East</label>
-            <select id="adjE"><option value="">—</option><option>Residential SF</option><option>Residential MF</option><option>Commercial</option><option>Industrial</option><option>Mixed Use</option><option>Open Space</option><option>Public/Inst.</option></select>
+            <select id="adjE"><option value="">—</option><option>Residential SF</option><option>Residential MF</option><option>Commercial</option><option>Industrial</option><option>Mixed Use</option><option>Open Space</option><option>Public/Inst.</option><option>ROW/Street</option></select>
           </div>
           <div class="adj-item">
             <label>West</label>
-            <select id="adjW"><option value="">—</option><option>Residential SF</option><option>Residential MF</option><option>Commercial</option><option>Industrial</option><option>Mixed Use</option><option>Open Space</option><option>Public/Inst.</option></select>
+            <select id="adjW"><option value="">—</option><option>Residential SF</option><option>Residential MF</option><option>Commercial</option><option>Industrial</option><option>Mixed Use</option><option>Open Space</option><option>Public/Inst.</option><option>ROW/Street</option></select>
           </div>
         </div>
       </div>
@@ -250,27 +258,17 @@ body { font-family: 'Source Sans 3', sans-serif; background: var(--cream); color
     </div>
 
     <div class="sidebar-card">
-      <div class="sidebar-card-head">🌳 Net Developable Area & Tree Credits</div>
+      <div class="sidebar-card-head">🌳 Net Developable Area &amp; Tree Credits</div>
       <div class="sidebar-card-body">
         <div class="form-group">
-          <label>Gross Site Area (acres)</label>
-          <input type="number" id="grossAcres" placeholder="e.g. 1.46" step="0.01" oninput="calcNDA()">
+          <label>Net Developable Area (acres)</label>
+          <input type="number" id="grossAcres" placeholder="e.g. 1.34" step="0.001">
         </div>
-        <div class="form-group">
-          <label>ROW / Road Dedication (acres)</label>
-          <input type="number" id="rowAcres" placeholder="e.g. 0.12" step="0.01" oninput="calcNDA()">
+        <div class="form-group" style="display:none">
+          <input type="hidden" id="rowAcres" value="0">
+          <input type="hidden" id="treeCalcBasis" value="nda">
         </div>
-        <div class="form-group">
-          <label style="color:rgba(255,255,255,0.8);font-size:0.75rem;text-transform:none;letter-spacing:0">Net Developable Area</label>
-          <div id="ndaResult" style="background:rgba(201,168,76,0.18);border:1px solid var(--gold);border-radius:4px;padding:8px 10px;font-size:0.9rem;font-weight:700;color:var(--gold);min-height:34px;">— ac</div>
-        </div>
-        <div class="form-group" style="border-top:1px solid rgba(255,255,255,0.1);padding-top:10px;margin-top:4px">
-          <label>Tree Credit Calculation Basis</label>
-          <select id="treeCalcBasis">
-            <option value="nda">Net Developable Area (NDA)</option>
-            <option value="gross">Gross Acreage</option>
-          </select>
-        </div>
+        <div style="font-size:0.73rem;color:rgba(255,255,255,0.4);line-height:1.4;margin-top:2px">Enter NDA after deducting ROW, critical areas, and other non-developable areas. Required TCU = NDA × zone rate from Table 18J.15.030-2.</div>
       </div>
     </div>
 
@@ -314,13 +312,179 @@ body { font-family: 'Source Sans 3', sans-serif; background: var(--cream); color
 
 <script>
 // =============================================
+// GIS VIEWER LINKS BY JURISDICTION
+// =============================================
+const gisViewerLinks = {
+  pierce:   p => `https://matterhornwab.co.pierce.wa.us/publicgis/?parcel=${p}`,
+  tacoma:   p => `https://tacomaopendata-tacoma.hub.arcgis.com/datasets/tacoma::zoning-districts-tacoma-data/explore`,
+  kitsap:   p => `https://www.kitsapgov.com/dcd/Pages/zoning.aspx`,
+  thurston: p => `https://www.co.thurston.wa.us/permits/gis.html`,
+  mason:    p => `https://www.masoncountywa.gov/community-services/`,
+  puyallup: p => `https://gis.puyallupwa.gov/`,
+  lakewood: p => `https://www.cityoflakewood.us/planning/`,
+  up:       p => `https://www.cityofup.com/planning`
+};
+
+// =============================================
+// ZONE CLASSIFICATION HELPER
+// =============================================
+function classifyZone(rawZone, jur) {
+  if (!rawZone) return '';
+  const z = rawZone.toUpperCase().trim();
+  if (jur === 'pierce') {
+    if (/^(SF|MSF|MHR)/.test(z)) return 'Residential SF';
+    if (/^MFR/.test(z)) return 'Residential MF';
+    if (/^(NCO|GCO|BPC|GBP|RC|AC)/.test(z)) return 'Commercial';
+    if (/^(IG|IH)/.test(z)) return 'Industrial';
+    if (/^PI/.test(z)) return 'Public/Inst.';
+    if (/^(GR|AL|RR|AG)/.test(z)) return 'Open Space';
+  }
+  if (jur === 'tacoma') {
+    if (/^(R-1|R-2|R-3|UR-1|UR-2)/.test(z)) return 'Residential SF';
+    if (/^(R-4|R-5|UR-3)/.test(z)) return 'Residential MF';
+    if (/^(C-1|C-2|NCX|NRX|T|HM|MUS)/.test(z)) return 'Commercial';
+    if (/^PMI/.test(z)) return 'Industrial';
+    if (/^(SRD|PDB|HMR)/.test(z)) return 'Mixed Use';
+  }
+  if (/^(R|RS|RM|SF|SFR|RES)/.test(z)) return 'Residential SF';
+  if (/^(MF|MFR|MULTI)/.test(z)) return 'Residential MF';
+  if (/^(C|NC|GC|CC|COM|BUS|BP)/.test(z)) return 'Commercial';
+  if (/^(I|IG|IH|LI|HI|IND|EMP)/.test(z)) return 'Industrial';
+  if (/^(MU|MIXED)/.test(z)) return 'Mixed Use';
+  if (/^(OS|GR|OPEN|PARK|AG|RR|RURAL|FOREST)/.test(z)) return 'Open Space';
+  if (/^(PI|PUB|INST)/.test(z)) return 'Public/Inst.';
+  return '';
+}
+
+function setGisStatus(msg, type) {
+  const el = document.getElementById('gisStatus');
+  el.style.display = 'block';
+  el.style.background = type==='ok' ? 'rgba(61,107,79,0.4)' : type==='warn' ? 'rgba(232,168,48,0.2)' : 'rgba(184,92,56,0.2)';
+  el.style.color = type==='ok' ? '#a8c5a0' : type==='warn' ? '#e8c870' : '#e8a080';
+  el.style.border = `1px solid ${type==='ok'?'#3d6b4f':type==='warn'?'#c9a84c':'#b85c38'}`;
+  el.textContent = msg;
+}
+
+function setZoneFromGIS(rawZone, jur) {
+  if (!rawZone) return;
+  const sel = document.getElementById('planZone');
+  const z = rawZone.trim();
+  // Exact match
+  for (let o of sel.options) { if (o.value.toUpperCase()===z.toUpperCase()) { sel.value=o.value; return; } }
+  // Partial match
+  for (let o of sel.options) { if (o.value && z.toUpperCase().startsWith(o.value.toUpperCase().split(' ')[0])) { sel.value=o.value; return; } }
+  // Add as new option
+  const opt = document.createElement('option');
+  opt.value = z; opt.textContent = z + ' (GIS)'; opt.selected = true;
+  sel.appendChild(opt);
+}
+
+// =============================================
+// PIERCE COUNTY GIS LOOKUP
+// Open Pierce County SODA API
+// =============================================
+async function lookupPierce(parcel) {
+  const clean = parcel.replace(/\D/g,'');
+  // Try Open Pierce County SODA (Socrata) API - Tax Parcels dataset
+  const sodaUrl = `https://open.piercecountywa.gov/resource/kya8-h7en.json?parcel_number=${encodeURIComponent(clean)}&$limit=1`;
+  try {
+    const r = await fetch(sodaUrl, {headers:{'Accept':'application/json'}});
+    if (r.ok) {
+      const d = await r.json();
+      if (d && d.length > 0) {
+        const row = d[0];
+        const addr = row.site_address || row.situs_address || row.address || '';
+        const zone = row.zoning || row.zon_cur_cd || row.current_zoning || '';
+        const acres = row.acres || row.parcel_acres || row.total_acres || '';
+        if (addr) document.getElementById('siteAddr').value = addr;
+        if (zone) setZoneFromGIS(zone.trim(), 'pierce');
+        if (acres) document.getElementById('siteAcres').value = parseFloat(acres).toFixed(3);
+        document.getElementById('zoneSource').textContent = '(from GIS)';
+        setGisStatus('✅ Parcel data loaded from Pierce County Open Data', 'ok');
+        return true;
+      }
+    }
+  } catch(e) {}
+  return false;
+}
+
+// =============================================
+// TACOMA GIS LOOKUP
+// ArcGIS FeatureServer - confirmed endpoint
+// =============================================
+async function lookupTacoma(parcel) {
+  const clean = parcel.replace(/\D/g,'');
+  // Query Tacoma Zoning Districts FeatureServer by parcel number
+  const url = `https://services.arcgis.com/f4rR7WnIfGBdVYFd/arcgis/rest/services/Zoning_Districts/FeatureServer/0/query?where=PARCELNO%3D%27${encodeURIComponent(clean)}%27&outFields=PARCELNO,ZONE_CLASS,ZONE_DESC,ADDRESS&returnGeometry=false&f=json`;
+  try {
+    const r = await fetch(url);
+    if (r.ok) {
+      const d = await r.json();
+      if (d.features && d.features.length > 0) {
+        const a = d.features[0].attributes;
+        if (a.ADDRESS) document.getElementById('siteAddr').value = a.ADDRESS;
+        const zone = a.ZONE_CLASS || a.ZONING || '';
+        if (zone) setZoneFromGIS(zone.trim(), 'tacoma');
+        document.getElementById('zoneSource').textContent = '(from GIS)';
+        setGisStatus('✅ Parcel data loaded from Tacoma GIS', 'ok');
+        return true;
+      }
+    }
+  } catch(e) {}
+  return false;
+}
+
+// =============================================
+// FALLBACK — show GIS viewer link + instructions
+// =============================================
+function showGISFallback(jur, parcel) {
+  const msgs = {
+    pierce:   'Could not retrieve parcel data automatically. Open the GIS viewer to look up zoning, then enter manually.',
+    tacoma:   'Could not retrieve parcel data automatically. Open Tacoma\'s GIS to look up zoning, then enter manually.',
+    kitsap:   'Kitsap County GIS lookup requires manual entry. Open the GIS viewer to find zoning.',
+    thurston: 'Thurston County GIS lookup requires manual entry. Open the GIS viewer to find zoning.',
+    mason:    'Mason County GIS lookup requires manual entry. Open the county site to find zoning.',
+    puyallup: 'Puyallup GIS lookup requires manual entry. Open the GIS viewer to find zoning.',
+    lakewood: 'Lakewood GIS lookup requires manual entry. Open the city planning page.',
+    up:       'University Place GIS lookup requires manual entry. Open the city planning page.'
+  };
+  setGisStatus('⚠ ' + (msgs[jur] || 'Manual lookup required. Open GIS viewer below.'), 'warn');
+}
+
+// =============================================
+// MAIN PARCEL LOOKUP DISPATCHER
+// =============================================
+async function lookupParcel() {
+  const jur = document.getElementById('jurisdiction').value;
+  const parcel = document.getElementById('parcelNum').value.trim();
+  if (!jur) { alert('Please select a jurisdiction first.'); return; }
+  if (!parcel) { alert('Please enter a parcel number.'); return; }
+
+  // Always show GIS viewer link
+  const linkA = document.getElementById('gisViewerAnchor');
+  const linkDiv = document.getElementById('gisViewerLink');
+  if (gisViewerLinks[jur]) { linkA.href = gisViewerLinks[jur](parcel); linkDiv.style.display = 'block'; }
+
+  setGisStatus('🔄 Looking up parcel data from public GIS...', 'warn');
+
+  let success = false;
+  try {
+    if (jur === 'pierce') success = await lookupPierce(parcel);
+    else if (jur === 'tacoma') success = await lookupTacoma(parcel);
+  } catch(e) { success = false; }
+
+  if (!success) showGISFallback(jur, parcel);
+
+  document.getElementById('adjHint').textContent = success
+    ? 'GIS data loaded above. Verify and set adjacent zones below manually — GIS adjacent zone auto-fill coming soon.'
+    : 'Select adjacent zones manually below. Open the GIS viewer link above to check neighboring parcel zones.';
+}
+
+// =============================================
 // NDA CALCULATOR (live sidebar)
 // =============================================
 function calcNDA() {
-  const gross = parseFloat(document.getElementById('grossAcres').value) || 0;
-  const row = parseFloat(document.getElementById('rowAcres').value) || 0;
-  const nda = Math.max(0, gross - row);
-  document.getElementById('ndaResult').textContent = nda > 0 ? nda.toFixed(3) + ' ac' : '— ac';
+  // NDA is now entered directly — no calculation needed
 }
 
 // =============================================
@@ -418,26 +582,23 @@ function calcTreeCredits(jur, zone, grossAcres, rowAcres) {
   const zoneData = (data.zones && data.zones[zone]) ? data.zones[zone] : data.default;
   const codeRef = zoneData.codeRef || data.default.codeRef || '';
   const note = zoneData.note || data.default.note || '';
-  const basis = zoneData.basis || data.default.basis || 'nda';
   const unitsPerAcre = zoneData.unitsPerAcre !== undefined ? zoneData.unitsPerAcre : data.default.unitsPerAcre;
   const label = zoneData.label || data.default.label || '';
   const creditNote = zoneData.creditNote || null;
 
-  const nda = Math.max(0, (parseFloat(grossAcres) || 0) - (parseFloat(rowAcres) || 0));
-  const calcAcres = basis === 'gross' ? (parseFloat(grossAcres) || 0) : nda;
+  // grossAcres field now holds NDA directly
+  const nda = parseFloat(grossAcres) || 0;
 
   let result = {
-    label, codeRef, note, basis, calcAcres, unitsPerAcre,
+    label, codeRef, note, creditNote,
     nda: nda.toFixed(3),
-    grossAcres: parseFloat(grossAcres) || 0,
-    rowAcres: parseFloat(rowAcres) || 0,
-    creditNote
+    unitsPerAcre
   };
 
-  if (unitsPerAcre !== null && calcAcres > 0) {
-    const raw = calcAcres * unitsPerAcre;
+  if (unitsPerAcre !== null && nda > 0) {
+    const raw = nda * unitsPerAcre;
     result.requiredUnits = raw >= 0.5 ? Math.round(raw) : Math.floor(raw);
-    result.formula = `${calcAcres.toFixed(3)} ac (${basis === 'gross' ? 'gross' : 'NDA'}) × ${unitsPerAcre} units/ac = ${result.requiredUnits} tree units`;
+    result.formula = `${nda.toFixed(3)} ac (NDA) × ${unitsPerAcre} TCU/ac = ${result.requiredUnits} tree credit units`;
   } else {
     result.requiredUnits = null;
   }
@@ -864,15 +1025,16 @@ function generateReport() {
   const tc = calcTreeCredits(jur, zone, grossAcres, rowAcres);
   let treeCreditHTML = '';
   if (tc) {
-    const ndaRow = grossAcres ? `
-      <tr><td style="color:var(--stone);font-size:0.75rem;padding:5px 8px;white-space:nowrap">Gross Site Area</td><td style="padding:5px 8px;font-weight:600">${parseFloat(grossAcres).toFixed(3)} ac</td></tr>
-      <tr><td style="color:var(--stone);font-size:0.75rem;padding:5px 8px;white-space:nowrap">ROW Deduction</td><td style="padding:5px 8px;font-weight:600">− ${parseFloat(rowAcres||0).toFixed(3)} ac</td></tr>
-      <tr style="border-top:1px solid #ccc"><td style="color:var(--stone);font-size:0.75rem;padding:5px 8px;white-space:nowrap">Net Developable Area</td><td style="padding:5px 8px;font-weight:700;color:var(--forest)">${tc.nda} ac</td></tr>
-    ` : '';
+    const ndaRow = tc.nda !== '0.000' ? `
+      <tr><td style="color:var(--stone);font-size:0.75rem;padding:5px 8px;white-space:nowrap">Net Developable Area</td><td style="padding:5px 8px;font-weight:700;color:var(--forest)">${tc.nda} ac</td></tr>
+      <tr><td style="color:var(--stone);font-size:0.75rem;padding:5px 8px;white-space:nowrap">TCU Rate (Zone)</td><td style="padding:5px 8px;font-weight:600">${tc.unitsPerAcre !== null ? tc.unitsPerAcre + ' TCU/acre' : 'See note'}</td></tr>
+    ` : '<tr><td colspan="2" style="padding:6px 8px;font-size:0.8rem;color:var(--stone);font-style:italic">Enter NDA in sidebar to calculate.</td></tr>';
     const calcRow = tc.requiredUnits !== null ? `
-      <tr style="border-top:2px solid var(--gold)"><td style="color:var(--stone);font-size:0.75rem;padding:5px 8px;white-space:nowrap">Calc. Basis</td><td style="padding:5px 8px;font-size:0.78rem">${tc.basis === 'gross' ? 'Gross acreage' : 'NDA (net developable)'}</td></tr>
-      <tr><td style="color:var(--stone);font-size:0.75rem;padding:5px 8px;white-space:nowrap">Formula</td><td style="padding:5px 8px;font-size:0.78rem">${tc.formula}</td></tr>
-      <tr style="background:var(--mist)"><td style="font-size:0.78rem;font-weight:700;padding:6px 8px;color:var(--forest)">Required Tree Units</td><td style="padding:6px 8px;font-size:1.1rem;font-weight:700;color:var(--forest)">${tc.requiredUnits}</td></tr>
+      <tr style="background:var(--mist);border-top:2px solid var(--gold)">
+        <td style="font-size:0.78rem;font-weight:700;padding:8px;color:var(--forest)">Required Tree Credit Units</td>
+        <td style="padding:8px;font-size:1.2rem;font-weight:700;color:var(--forest)">${tc.requiredUnits} TCU</td>
+      </tr>
+      <tr><td colspan="2" style="padding:5px 8px;font-size:0.75rem;color:var(--stone);font-style:italic">${tc.formula}</td></tr>
     ` : `<tr><td colspan="2" style="padding:8px;font-size:0.8rem;color:#555;font-style:italic">${tc.creditNote || tc.note || 'See tree conservation section below.'}</td></tr>`;
 
     treeCreditHTML = `
@@ -881,7 +1043,7 @@ function generateReport() {
         <div class="code-section-body">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
             <div>
-              <table style="width:100%;border-collapse:collapse;font-size:0.83rem">
+              <table style="width:100%;border-collapse:collapse;font-size:0.83rem;border:1px solid #dde5d8;border-radius:4px;overflow:hidden">
                 ${ndaRow}
                 ${calcRow}
               </table>
@@ -890,7 +1052,7 @@ function generateReport() {
               <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--forest);margin-bottom:5px">${tc.label}</div>
               <span class="code-item-ref">${tc.codeRef}</span>
               <div style="margin-top:6px">${tc.note}</div>
-              ${tc.requiredUnits !== null ? `<div style="margin-top:8px;padding:6px 10px;background:white;border-radius:4px;border-left:3px solid var(--gold);font-size:0.78rem;color:#444">30% of required units must be coniferous. No single species &gt;25% of total. Min. 25% of trees in protected tracts (PCC 18J.15.030.F).</div>` : ''}
+              ${tc.requiredUnits !== null ? `<div style="margin-top:8px;padding:6px 10px;background:white;border-radius:4px;border-left:3px solid var(--gold);font-size:0.78rem;color:#444">Min. 30% of replacement trees must be coniferous. No single species &gt;25% of total. PCC 18J.15.030.F</div>` : ''}
             </div>
           </div>
         </div>
@@ -992,9 +1154,8 @@ function generateReport() {
 }
 
 function resetAll() {
-  document.querySelectorAll('input, select, textarea').forEach(el => el.value = '');
+  document.querySelectorAll('input[type="text"], input[type="number"], select, textarea').forEach(el => el.value = '');
   document.getElementById('planZone').innerHTML = '<option value="">— Select Zone —</option>';
-  document.getElementById('ndaResult').textContent = '— ac';
   document.getElementById('placeholder').style.display = 'block';
   document.getElementById('report').style.display = 'none';
   document.getElementById('report').innerHTML = '';
@@ -1003,5 +1164,6 @@ function resetAll() {
 // Set default date
 document.getElementById('reportDate').value = new Date().toLocaleDateString('en-US');
 </script>
-</body>
-</html>
+
+
+</body></html>
