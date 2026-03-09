@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0067)file:///Users/kathyowens/Downloads/wa-landscape-code-tool-v3_2.html -->
+<!-- saved from url=(0067)file:///Users/kathyowens/Downloads/wa-landscape-code-tool-v3_3.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -212,8 +212,8 @@ body { font-family: 'Source Sans 3', sans-serif; background: var(--cream); color
           <label>Site Area (acres)</label>
           <input type="text" id="siteAcres" placeholder="e.g. 1.46">
         </div>
-        <div id="gisViewerLink" style="display:none;margin-top:6px">
-          <a id="gisViewerAnchor" href="file:///Users/kathyowens/Downloads/wa-landscape-code-tool-v3_2.html#" target="_blank" style="font-size:0.73rem;color:var(--gold);text-decoration:none">📂 Open in County GIS Viewer →</a>
+        <div id="gisViewerLink" style="display:none;margin-top:8px;display:flex;flex-direction:column;gap:5px">
+          <!-- GIS buttons injected here by JS -->
         </div>
       </div>
     </div>
@@ -312,18 +312,68 @@ body { font-family: 'Source Sans 3', sans-serif; background: var(--cream); color
 
 <script>
 // =============================================
-// GIS VIEWER LINKS BY JURISDICTION
+// GIS VIEWER DEEP LINKS — confirmed URLs
 // =============================================
 const gisViewerLinks = {
-  pierce:   p => `https://matterhornwab.co.pierce.wa.us/publicgis/?parcel=${p}`,
-  tacoma:   p => `https://tacomaopendata-tacoma.hub.arcgis.com/datasets/tacoma::zoning-districts-tacoma-data/explore`,
-  kitsap:   p => `https://www.kitsapgov.com/dcd/Pages/zoning.aspx`,
-  thurston: p => `https://www.co.thurston.wa.us/permits/gis.html`,
-  mason:    p => `https://www.masoncountywa.gov/community-services/`,
+  // Pierce County — AboutMyProperty tool accepts parcel number
+  pierce:   p => `https://www.piercecountywa.gov/AboutMyProperty#${p}`,
+  // Pierce County Assessor-Treasurer parcel search (confirmed working)
+  pierceAT: p => `https://atip.piercecountywa.gov/app/v2/parcelSearch/search?parcelNumber=${p}`,
+  // Pierce County GIS map viewer
+  pierceGIS: p => `https://matterhornwab.co.pierce.wa.us/publicgis/`,
+  // Tacoma open data / permits portal
+  tacoma:   p => `https://tacomapermits.org/Home/Search?query=${p}`,
+  // Kitsap County parcel search — confirmed at psearch.kitsap.gov
+  kitsap:   p => `https://psearch.kitsap.gov/psearch/details.aspx?parcel=${p}`,
+  // Thurston County A+ Parcel Search
+  thurston: p => `https://www.co.thurston.wa.us/aplusweb/AssessorSearch.aspx?parcel=${p}`,
+  // Mason County
+  mason:    p => `https://www.masonweblook.com/`,
+  // Puyallup GIS
   puyallup: p => `https://gis.puyallupwa.gov/`,
+  // Lakewood
   lakewood: p => `https://www.cityoflakewood.us/planning/`,
+  // University Place
   up:       p => `https://www.cityofup.com/planning`
 };
+
+// Returns array of {label, url} buttons for each jurisdiction
+function getGISButtons(jur, parcel) {
+  const p = encodeURIComponent(parcel);
+  const raw = parcel;
+  const buttons = {
+    pierce: [
+      { label: '🗺 Pierce County GIS Map', url: `https://matterhornwab.co.pierce.wa.us/publicgis/` },
+      { label: '📋 About My Property', url: `https://www.piercecountywa.gov/AboutMyProperty` },
+      { label: '💰 Assessor-Treasurer Parcel', url: `https://atip.piercecountywa.gov/app/v2/parcelSearch/search?parcelNumber=${raw}` },
+    ],
+    tacoma: [
+      { label: '🗺 Tacoma Permits Portal', url: `https://tacomapermits.org/Home/Search?query=${raw}` },
+      { label: '📋 Tacoma Open Data Zoning', url: `https://tacomaopendata-tacoma.hub.arcgis.com/datasets/tacoma::zoning-districts-tacoma-data/explore` },
+    ],
+    kitsap: [
+      { label: '🗺 Kitsap Parcel Search', url: `https://psearch.kitsap.gov/psearch/details.aspx?parcel=${raw}` },
+      { label: '📋 Kitsap GIS', url: `https://www.kitsap.gov/dis/pages/gis.aspx` },
+    ],
+    thurston: [
+      { label: '🗺 Thurston A+ Parcel Search', url: `https://www.co.thurston.wa.us/aplusweb/AssessorSearch.aspx?parcel=${raw}` },
+      { label: '📋 Thurston GIS Map', url: `https://map.co.thurston.wa.us/` },
+    ],
+    mason: [
+      { label: '🗺 Mason County Parcel Lookup', url: `https://www.masonweblook.com/` },
+    ],
+    puyallup: [
+      { label: '🗺 Puyallup GIS Viewer', url: `https://gis.puyallupwa.gov/` },
+    ],
+    lakewood: [
+      { label: '🗺 Lakewood Planning / Zoning', url: `https://www.cityoflakewood.us/planning/` },
+    ],
+    up: [
+      { label: '🗺 University Place Planning', url: `https://www.cityofup.com/planning` },
+    ],
+  };
+  return buttons[jur] || [];
+}
 
 // =============================================
 // ZONE CLASSIFICATION HELPER
@@ -481,20 +531,23 @@ async function lookupTacoma(parcel) {
 }
 
 // =============================================
-// FALLBACK — show GIS viewer link + instructions
+// RENDER GIS BUTTONS
+// =============================================
+function renderGISButtons(jur, parcel) {
+  const btns = getGISButtons(jur, parcel);
+  const container = document.getElementById('gisViewerLink');
+  container.style.display = 'flex';
+  container.innerHTML = btns.map(b =>
+    `<a href="${b.url}" target="_blank" style="display:block;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.4);border-radius:4px;padding:6px 10px;font-size:0.73rem;font-weight:600;color:var(--gold);text-decoration:none;text-align:center">${b.label}</a>`
+  ).join('');
+}
+
+// =============================================
+// FALLBACK — show GIS buttons + instructions
 // =============================================
 function showGISFallback(jur, parcel) {
-  const msgs = {
-    pierce:   'Could not retrieve parcel data automatically. Open the GIS viewer to look up zoning, then enter manually.',
-    tacoma:   'Could not retrieve parcel data automatically. Open Tacoma\'s GIS to look up zoning, then enter manually.',
-    kitsap:   'Kitsap County GIS lookup requires manual entry. Open the GIS viewer to find zoning.',
-    thurston: 'Thurston County GIS lookup requires manual entry. Open the GIS viewer to find zoning.',
-    mason:    'Mason County GIS lookup requires manual entry. Open the county site to find zoning.',
-    puyallup: 'Puyallup GIS lookup requires manual entry. Open the GIS viewer to find zoning.',
-    lakewood: 'Lakewood GIS lookup requires manual entry. Open the city planning page.',
-    up:       'University Place GIS lookup requires manual entry. Open the city planning page.'
-  };
-  setGisStatus('⚠ ' + (msgs[jur] || 'Manual lookup required. Open GIS viewer below.'), 'warn');
+  setGisStatus('⚠ Auto-lookup unavailable — use the GIS buttons below to look up zoning, then enter manually.', 'warn');
+  renderGISButtons(jur, parcel);
 }
 
 // =============================================
@@ -506,12 +559,9 @@ async function lookupParcel() {
   if (!jur) { alert('Please select a jurisdiction first.'); return; }
   if (!parcel) { alert('Please enter a parcel number.'); return; }
 
-  // Always show GIS viewer link
-  const linkA = document.getElementById('gisViewerAnchor');
-  const linkDiv = document.getElementById('gisViewerLink');
-  if (gisViewerLinks[jur]) { linkA.href = gisViewerLinks[jur](parcel); linkDiv.style.display = 'block'; }
-
-  setGisStatus('🔄 Looking up parcel data from public GIS...', 'warn');
+  // Always show GIS buttons immediately
+  renderGISButtons(jur, parcel);
+  setGisStatus('🔄 Attempting live parcel lookup...', 'warn');
 
   let success = false;
   try {
@@ -522,8 +572,8 @@ async function lookupParcel() {
   if (!success) showGISFallback(jur, parcel);
 
   document.getElementById('adjHint').textContent = success
-    ? 'GIS data loaded above. Verify and set adjacent zones below manually — GIS adjacent zone auto-fill coming soon.'
-    : 'Select adjacent zones manually below. Open the GIS viewer link above to check neighboring parcel zones.';
+    ? 'Parcel data loaded above. Set adjacent zones below — use the GIS map buttons to check neighboring zones.'
+    : 'Use the GIS buttons above to look up your parcel, then enter zoning and adjacent zones manually below.';
 }
 
 // =============================================
