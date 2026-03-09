@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- saved from url=(0067)file:///Users/kathyowens/Downloads/wa-landscape-code-tool-v3_1.html -->
+<!-- saved from url=(0067)file:///Users/kathyowens/Downloads/wa-landscape-code-tool-v3_2.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WA Landscape Code Tool v3</title>
-<link href="./WA Landscape Code Tool v3 c_files/css2" rel="stylesheet">
+<link href="./index_files/css2" rel="stylesheet">
 <style>
 :root {
   --forest: #1e3a2f;
@@ -213,7 +213,7 @@ body { font-family: 'Source Sans 3', sans-serif; background: var(--cream); color
           <input type="text" id="siteAcres" placeholder="e.g. 1.46">
         </div>
         <div id="gisViewerLink" style="display:none;margin-top:6px">
-          <a id="gisViewerAnchor" href="file:///Users/kathyowens/Downloads/wa-landscape-code-tool-v3_1.html#" target="_blank" style="font-size:0.73rem;color:var(--gold);text-decoration:none">📂 Open in County GIS Viewer →</a>
+          <a id="gisViewerAnchor" href="file:///Users/kathyowens/Downloads/wa-landscape-code-tool-v3_2.html#" target="_blank" style="font-size:0.73rem;color:var(--gold);text-decoration:none">📂 Open in County GIS Viewer →</a>
         </div>
       </div>
     </div>
@@ -381,30 +381,76 @@ function setZoneFromGIS(rawZone, jur) {
 
 // =============================================
 // PIERCE COUNTY GIS LOOKUP
-// Open Pierce County SODA API
+// Tax Parcels: open.piercecountywa.gov/resource/kya8-h7en (field: TaxParcelNumber)
+// Zoning: open.piercecountywa.gov/resource/4buf-wp5k (spatial - no parcel join)
+// Primary: AboutMyProperty API via piercecountywa.gov
 // =============================================
 async function lookupPierce(parcel) {
-  const clean = parcel.replace(/\D/g,'');
-  // Try Open Pierce County SODA (Socrata) API - Tax Parcels dataset
-  const sodaUrl = `https://open.piercecountywa.gov/resource/kya8-h7en.json?parcel_number=${encodeURIComponent(clean)}&$limit=1`;
+  const clean = parcel.replace(/\D/g,'').padStart(10,'0');
+
+  // Strategy 1: Open Pierce County Tax Parcels SODA API
+  // Field name confirmed: TaxParcelNumber (10 chars, zero-padded)
+  const sodaUrl = `https://open.piercecountywa.gov/resource/kya8-h7en.json?TaxParcelNumber=${encodeURIComponent(clean)}&$limit=1`;
   try {
     const r = await fetch(sodaUrl, {headers:{'Accept':'application/json'}});
     if (r.ok) {
       const d = await r.json();
       if (d && d.length > 0) {
         const row = d[0];
-        const addr = row.site_address || row.situs_address || row.address || '';
-        const zone = row.zoning || row.zon_cur_cd || row.current_zoning || '';
-        const acres = row.acres || row.parcel_acres || row.total_acres || '';
-        if (addr) document.getElementById('siteAddr').value = addr;
-        if (zone) setZoneFromGIS(zone.trim(), 'pierce');
+        // Field names from confirmed schema
+        const addr = row.Delivery_Address || row.delivery_address || row.SitusAddress || row.situs_address || '';
+        const city = row.City_State || row.city_state || '';
+        if (addr) document.getElementById('siteAddr').value = addr + (city ? ', ' + city : '');
+        // Parcel layer doesn't include zoning — try zoning lookup next
+        const acres = row.Land_Acres || row.land_acres || row.Acres || '';
         if (acres) document.getElementById('siteAcres').value = parseFloat(acres).toFixed(3);
-        document.getElementById('zoneSource').textContent = '(from GIS)';
-        setGisStatus('✅ Parcel data loaded from Pierce County Open Data', 'ok');
+        setGisStatus('✅ Parcel found — looking up zoning...', 'ok');
+        // Now try zoning SODA query
+        await lookupPierceZoning(clean);
         return true;
       }
     }
   } catch(e) {}
+
+  // Strategy 2: Pierce County AboutMyProperty / Development Center API
+  const ampUrl = `https://www.piercecountywa.gov/api/AboutMyProperty/GetParcelInfo?parcelNumber=${encodeURIComponent(clean)}`;
+  try {
+    const r2 = await fetch(ampUrl, {headers:{'Accept':'application/json'}});
+    if (r2.ok) {
+      const d2 = await r2.json();
+      if (d2) {
+        const addr = d2.SiteAddress || d2.siteAddress || d2.address || '';
+        const zone = d2.Zoning || d2.zoning || d2.ZoningDesignation || '';
+        const acres = d2.Acres || d2.acres || d2.LandAcres || '';
+        if (addr) document.getElementById('siteAddr').value = addr;
+        if (zone) { setZoneFromGIS(zone.trim(), 'pierce'); document.getElementById('zoneSource').textContent = '(from GIS)'; }
+        if (acres) document.getElementById('siteAcres').value = parseFloat(acres).toFixed(3);
+        setGisStatus('✅ Parcel data loaded from Pierce County', 'ok');
+        return true;
+      }
+    }
+  } catch(e) {}
+
+  return false;
+}
+
+async function lookupPierceZoning(clean) {
+  // Zoning dataset SODA — spatial layer, need to query by parcel number if joined
+  // Dataset 4buf-wp5k: Zoning designations for unincorporated Pierce County
+  const zoningUrl = `https://open.piercecountywa.gov/resource/4buf-wp5k.json?$limit=1&$where=parcelno=%27${encodeURIComponent(clean)}%27`;
+  try {
+    const r = await fetch(zoningUrl, {headers:{'Accept':'application/json'}});
+    if (r.ok) {
+      const d = await r.json();
+      if (d && d.length > 0) {
+        const zone = d[0].zone_cur || d[0].ZONE_CUR || d[0].zoning || d[0].Zoning || d[0].ZoneCur || '';
+        if (zone) { setZoneFromGIS(zone.trim(), 'pierce'); document.getElementById('zoneSource').textContent = '(from GIS)'; }
+        setGisStatus('✅ Parcel and zoning data loaded from Pierce County GIS', 'ok');
+        return true;
+      }
+    }
+  } catch(e) {}
+  setGisStatus('✅ Parcel found. Zoning not auto-filled — select from dropdown or open GIS viewer.', 'warn');
   return false;
 }
 
