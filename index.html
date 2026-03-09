@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WA Landscape Code Tool v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --forest: #1e3a2f;
+  --moss: #3d6b4f;
+  --sage: #6b9e78;
+  --fern: #a8c5a0;
+  --mist: #eef4ea;
+  --cream: #f7f4ee;
+  --bark: #5c3d2e;
+  --stone: #7a7a6a;
+  --ink: #1a1a1a;
+  --gold: #c9a84c;
+  --amber: #e8a830;
+  --alert: #b85c38;
+  --white: #ffffff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Source Sans 3', sans-serif; background: var(--cream); color: var(--ink); }
+
+/* === HEADER === */
+.header {
+  background: var(--forest);
+  color: white;
+  padding: 20px 32px 16px;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  border-bottom: 3px solid var(--gold);
+}
+.header h1 { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; }
+.header .sub { font-size: 0.75rem; color: var(--fern); letter-spacing: 0.07em; text-transform: uppercase; margin-top: 3px; }
+.header-btns { display: flex; gap: 8px; }
+.btn { padding: 8px 16px; border-radius: 4px; border: none; font-family: 'Source Sans 3', sans-serif; font-size: 0.78rem; font-weight: 700; cursor: pointer; letter-spacing: 0.04em; text-transform: uppercase; transition: all 0.18s; }
+.btn-gold { background: var(--gold); color: var(--forest); }
+.btn-gold:hover { background: #d4b45a; }
+.btn-outline { background: transparent; border: 1.5px solid var(--fern); color: var(--fern); }
+.btn-outline:hover { background: rgba(255,255,255,0.1); }
+
+/* === LAYOUT === */
+.app { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 70px); }
+
+/* === SIDEBAR === */
+.sidebar { background: var(--forest); padding: 20px 18px; display: flex; flex-direction: column; gap: 16px; }
+.sidebar-card { background: rgba(255,255,255,0.07); border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; }
+.sidebar-card-head { padding: 9px 14px; background: rgba(0,0,0,0.2); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fern); }
+.sidebar-card-body { padding: 14px; }
+.form-group { margin-bottom: 11px; }
+.form-group:last-child { margin-bottom: 0; }
+.form-group label { display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.5); margin-bottom: 4px; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; padding: 7px 9px;
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px; font-family: 'Source Sans 3', sans-serif; font-size: 0.83rem;
+  color: white; transition: border-color 0.2s;
+}
+.form-group input::placeholder { color: rgba(255,255,255,0.3); }
+.form-group select option { background: var(--forest); color: white; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--gold); }
+.adj-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.adj-item label { font-size: 0.68rem; color: rgba(255,255,255,0.45); font-weight: 600; margin-bottom: 2px; display: block; }
+.adj-item select { padding: 5px 7px; font-size: 0.75rem; }
+.gen-btn { width: 100%; margin-top: 4px; padding: 11px; background: var(--gold); border: none; border-radius: 4px; font-family: 'Source Sans 3', sans-serif; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--forest); cursor: pointer; transition: background 0.2s; }
+.gen-btn:hover { background: #d4b45a; }
+
+/* === MAIN === */
+.main { background: var(--cream); padding: 28px 32px; overflow-y: auto; }
+.placeholder-state { text-align: center; padding: 80px 20px; }
+.placeholder-state .big-icon { font-size: 4rem; margin-bottom: 16px; }
+.placeholder-state h2 { font-family: 'Playfair Display', serif; color: var(--forest); font-size: 1.4rem; margin-bottom: 8px; }
+.placeholder-state p { color: var(--stone); font-size: 0.88rem; line-height: 1.6; max-width: 420px; margin: 0 auto; }
+
+/* === REPORT === */
+#report { display: none; }
+
+.report-header { margin-bottom: 24px; }
+.report-jurisdiction { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; color: var(--forest); }
+.report-parcel { font-size: 0.88rem; color: var(--stone); margin-top: 4px; }
+.report-parcel span { font-weight: 600; color: var(--ink); }
+.report-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.meta-badge { background: var(--forest); color: white; font-size: 0.72rem; padding: 3px 10px; border-radius: 12px; font-weight: 600; }
+.meta-badge.zone { background: var(--moss); }
+.meta-badge.type { background: var(--bark); }
+
+.warning-box {
+  background: #fff8e6; border-left: 4px solid var(--amber);
+  padding: 10px 14px; border-radius: 0 6px 6px 0;
+  font-size: 0.8rem; line-height: 1.5; margin-bottom: 16px; color: #5a4000;
+}
+.warning-box strong { color: #3a2800; }
+.overlay-box {
+  background: #fff3f0; border-left: 4px solid var(--alert);
+  padding: 10px 14px; border-radius: 0 6px 6px 0;
+  font-size: 0.8rem; line-height: 1.5; margin-bottom: 20px; color: #5a1a00;
+}
+.overlay-box strong { color: var(--alert); }
+
+.sections-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.sections-grid.full { grid-template-columns: 1fr; }
+
+.code-section {
+  background: white; border-radius: 8px;
+  border: 1px solid #dde5d8; overflow: hidden;
+}
+.code-section-head {
+  background: var(--forest); color: white;
+  padding: 10px 16px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.85rem; font-weight: 700;
+}
+.code-section-head .ico { font-size: 1rem; }
+.code-section-body { padding: 14px 16px; }
+
+.code-item { margin-bottom: 9px; padding-bottom: 9px; border-bottom: 1px solid #eee; }
+.code-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+.code-item-ref { display: inline-block; background: var(--moss); color: white; font-size: 0.67rem; font-weight: 700; padding: 2px 7px; border-radius: 3px; margin-bottom: 3px; font-family: 'Source Sans 3', sans-serif; letter-spacing: 0.02em; }
+.code-item-ref.alt { background: var(--bark); }
+.code-item-text { font-size: 0.82rem; line-height: 1.5; color: #333; }
+
+.action-box { background: var(--mist); border-radius: 6px; padding: 12px 16px; margin-top: 16px; }
+.action-box h4 { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--forest); margin-bottom: 8px; }
+.action-item { display: flex; gap: 8px; font-size: 0.8rem; line-height: 1.45; margin-bottom: 5px; color: #2a4a32; }
+.action-item::before { content: "→"; color: var(--moss); font-weight: 700; flex-shrink: 0; }
+
+.report-footer { font-size: 0.72rem; color: var(--stone); margin-top: 20px; padding-top: 14px; border-top: 1px solid #ccc; }
+
+/* === PRINT === */
+@media print {
+  body { background: white; }
+  .header { background: var(--forest) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .main { padding: 0; }
+  .no-print { display: none !important; }
+  .code-section-head { background: var(--forest) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .sections-grid { grid-template-columns: 1fr 1fr; }
+  .code-section { page-break-inside: avoid; }
+  #report { display: block !important; }
+  .placeholder-state { display: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="header no-print">
+  <div>
+    <h1>🌿 WA Landscape Code Tool</h1>
+    <div class="sub">9-Jurisdiction Reference · Perimeter · Parking · Street Trees · Tree Conservation</div>
+  </div>
+  <div class="header-btns">
+    <button class="btn btn-outline" onclick="resetAll()">↺ Reset</button>
+    <button class="btn btn-gold" onclick="window.print()">🖨 Print / PDF</button>
+  </div>
+</div>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar no-print">
+
+    <div class="sidebar-card">
+      <div class="sidebar-card-head">📍 Parcel Info</div>
+      <div class="sidebar-card-body">
+        <div class="form-group">
+          <label>Parcel Number</label>
+          <input type="text" id="parcelNum" placeholder="e.g. 4015425678">
+        </div>
+        <div class="form-group">
+          <label>Site Address</label>
+          <input type="text" id="siteAddr" placeholder="Street address">
+        </div>
+        <div class="form-group">
+          <label>Jurisdiction</label>
+          <select id="jurisdiction" onchange="onJurisdictionChange()">
+            <option value="">— Select Jurisdiction —</option>
+            <option value="tacoma">City of Tacoma</option>
+            <option value="pierce">Pierce County (Unincorporated)</option>
+            <option value="kitsap">Kitsap County (Unincorporated)</option>
+            <option value="thurston">Thurston County (Unincorporated)</option>
+            <option value="mason">Mason County (Unincorporated)</option>
+            <option value="puyallup">City of Puyallup</option>
+            <option value="lakewood">City of Lakewood</option>
+            <option value="up">City of University Place</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Planning Zone</label>
+          <select id="planZone">
+            <option value="">— Select Zone —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Project Type</label>
+          <select id="projType">
+            <option value="">— Select —</option>
+            <option value="res-sf">Residential – Single Family</option>
+            <option value="res-mf">Residential – Multi-Family</option>
+            <option value="commercial">Commercial</option>
+            <option value="industrial">Industrial</option>
+            <option value="mixed">Mixed Use</option>
+            <option value="public">Public / Institutional</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Site Area (acres)</label>
+          <input type="text" id="siteAcres" placeholder="e.g. 1.46">
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-card">
+      <div class="sidebar-card-head">🏘 Adjacent Property Zones</div>
+      <div class="sidebar-card-body">
+        <div class="adj-grid">
+          <div class="adj-item">
+            <label>North</label>
+            <select id="adjN"><option value="">—</option><option>Residential SF</option><option>Residential MF</option><option>Commercial</option><option>Industrial</option><option>Mixed Use</option><option>Open Space</option><option>Public/Inst.</option></select>
+          </div>
+          <div class="adj-item">
+            <label>South</label>
+            <select id="adjS"><option value="">—</option><option>Residential SF</option><option>Residential MF</option><option>Commercial</option><option>Industrial</option><option>Mixed Use</option><option>Open Space</option><option>Public/Inst.</option></select>
+          </div>
+          <div class="adj-item">
+            <label>East</label>
+            <select id="adjE"><option value="">—</option><option>Residential SF</option><option>Residential MF</option><option>Commercial</option><option>Industrial</option><option>Mixed Use</option><option>Open Space</option><option>Public/Inst.</option></select>
+          </div>
+          <div class="adj-item">
+            <label>West</label>
+            <select id="adjW"><option value="">—</option><option>Residential SF</option><option>Residential MF</option><option>Commercial</option><option>Industrial</option><option>Mixed Use</option><option>Open Space</option><option>Public/Inst.</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-card">
+      <div class="sidebar-card-head">🅿 Parking Estimate</div>
+      <div class="sidebar-card-body">
+        <div class="form-group">
+          <label>Approx. # Parking Stalls</label>
+          <input type="number" id="parkingStalls" placeholder="e.g. 40">
+        </div>
+        <div class="form-group">
+          <label>Total Paved Area (sq ft)</label>
+          <input type="number" id="pavedArea" placeholder="e.g. 18000">
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-card">
+      <div class="sidebar-card-head">🌳 Net Developable Area & Tree Credits</div>
+      <div class="sidebar-card-body">
+        <div class="form-group">
+          <label>Gross Site Area (acres)</label>
+          <input type="number" id="grossAcres" placeholder="e.g. 1.46" step="0.01" oninput="calcNDA()">
+        </div>
+        <div class="form-group">
+          <label>ROW / Road Dedication (acres)</label>
+          <input type="number" id="rowAcres" placeholder="e.g. 0.12" step="0.01" oninput="calcNDA()">
+        </div>
+        <div class="form-group">
+          <label style="color:rgba(255,255,255,0.8);font-size:0.75rem;text-transform:none;letter-spacing:0">Net Developable Area</label>
+          <div id="ndaResult" style="background:rgba(201,168,76,0.18);border:1px solid var(--gold);border-radius:4px;padding:8px 10px;font-size:0.9rem;font-weight:700;color:var(--gold);min-height:34px;">— ac</div>
+        </div>
+        <div class="form-group" style="border-top:1px solid rgba(255,255,255,0.1);padding-top:10px;margin-top:4px">
+          <label>Tree Credit Calculation Basis</label>
+          <select id="treeCalcBasis">
+            <option value="nda">Net Developable Area (NDA)</option>
+            <option value="gross">Gross Acreage</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-card">
+      <div class="sidebar-card-head">📝 Notes</div>
+      <div class="sidebar-card-body">
+        <div class="form-group">
+          <textarea id="projNotes" rows="3" placeholder="Additional project notes..." style="color:white;"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Prepared By</label>
+          <input type="text" id="preparedBy" placeholder="Name / License #">
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="text" id="reportDate" placeholder="MM/DD/YYYY">
+        </div>
+      </div>
+    </div>
+
+    <button class="gen-btn" onclick="generateReport()">⚡ Generate Code Report</button>
+
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <div class="placeholder-state" id="placeholder">
+      <div class="big-icon">🗺️</div>
+      <h2>Select a Jurisdiction to Begin</h2>
+      <p>Choose a jurisdiction, enter your parcel details and adjacent property zones in the sidebar, then click <strong>Generate Code Report</strong> to produce a printable landscape code reference sheet.</p>
+      <p style="margin-top:14px;font-size:0.78rem;color:#aaa;">Covers: City of Tacoma · Pierce County · Kitsap County · Thurston County · Mason County · City of Puyallup · City of Lakewood · City of University Place</p>
+    </div>
+
+    <div id="report">
+      <!-- Dynamically generated -->
+    </div>
+
+  </main>
+</div>
+
+<script>
+// =============================================
+// NDA CALCULATOR (live sidebar)
+// =============================================
+function calcNDA() {
+  const gross = parseFloat(document.getElementById('grossAcres').value) || 0;
+  const row = parseFloat(document.getElementById('rowAcres').value) || 0;
+  const nda = Math.max(0, gross - row);
+  document.getElementById('ndaResult').textContent = nda > 0 ? nda.toFixed(3) + ' ac' : '— ac';
+}
+
+// =============================================
+// TREE CREDIT UNIT DATA BY JURISDICTION & ZONE
+// =============================================
+// Each entry: { unitsPerAcre, basis, label, codeRef, note }
+// basis: 'nda' or 'gross'
+const treeCreditData = {
+  pierce: {
+    // PCC 18J.15.030 Table 18J.15.030-2 — verified values, use NET developable acreage
+    // (2) Urban Residential includes MSF, SF, MFR, MHR zones
+    // (3) Rural Residential includes RR 5/10/20 zones
+    // Employment Centers = 5 TCU/ac
+    // Urban/Rural Centers & Districts = 20 TCU/ac
+    // Resource Lands / other = Not Applicable
+    default: { unitsPerAcre: null, basis: 'nda', label: 'Verify zone category in Table 18J.15.030-2', codeRef: 'PCC 18J.15.030 Table 18J.15.030-2', note: 'Select a specific zone from the dropdown to calculate required tree credit units.' },
+    zones: {
+      // Urban Residential (footnote 2) = 30 TCU/ac
+      'SF 1':   { unitsPerAcre: 30, label: 'SF 1 – Single Family (Urban Residential)' },
+      'SF 2':   { unitsPerAcre: 30, label: 'SF 2 – Single Family (Urban Residential)' },
+      'SF 3':   { unitsPerAcre: 30, label: 'SF 3 – Single Family (Urban Residential)' },
+      'SF 5':   { unitsPerAcre: 30, label: 'SF 5 – Single Family (Urban Residential)' },
+      'MFR 15': { unitsPerAcre: 30, label: 'MFR 15 – Multi-Family (Urban Residential)' },
+      'MFR 25': { unitsPerAcre: 30, label: 'MFR 25 – Multi-Family (Urban Residential)' },
+      'MHR':    { unitsPerAcre: 30, label: 'MHR – Manufactured Housing (Urban Residential)' },
+      // Rural Residential (footnote 3) = 40 TCU/ac
+      'RR 5':   { unitsPerAcre: 40, label: 'RR 5 – Rural Residential' },
+      'RR 10':  { unitsPerAcre: 40, label: 'RR 10 – Rural Residential' },
+      'RR 20':  { unitsPerAcre: 40, label: 'RR 20 – Rural Residential' },
+      // Urban Centers and Districts / Rural Centers = 20 TCU/ac
+      'NCO':    { unitsPerAcre: 20, label: 'NCO – Neighborhood Commercial (Urban Center/District)' },
+      'GCO':    { unitsPerAcre: 20, label: 'GCO – General Commercial (Urban Center/District)' },
+      'BPC':    { unitsPerAcre: 20, label: 'BPC – Business Park Commercial (Urban Center/District)' },
+      'GBP':    { unitsPerAcre: 20, label: 'GBP – General Business Park (Urban Center/District)' },
+      'PI':     { unitsPerAcre: 20, label: 'PI – Public Institution (Urban Center/District)' },
+      'RC':     { unitsPerAcre: 20, label: 'RC – Rural Center' },
+      'AC':     { unitsPerAcre: 20, label: 'AC – Activity Center (Urban Center/District)' },
+      // Employment Centers = 5 TCU/ac
+      'IG':     { unitsPerAcre: 5,  label: 'IG – General Industrial (Employment Center)' },
+      'IH':     { unitsPerAcre: 5,  label: 'IH – Heavy Industrial (Employment Center)' },
+      // Resource Lands / other = Not Applicable
+      'GR':     { unitsPerAcre: null, label: 'GR – Greenbelt/Recreation (Resource Lands)', creditNote: 'Resource Lands and other zones: Not Applicable per Table 18J.15.030-2. No tree unit density formula applies.' },
+      'AL':     { unitsPerAcre: null, label: 'AL – Agriculture/Low Density (Resource Lands)', creditNote: 'Resource Lands and other zones: Not Applicable per Table 18J.15.030-2. No tree unit density formula applies.' },
+    }
+  },
+  tacoma: {
+    // Tacoma uses Tree Canopy Credits (not tree units/acre) in UR zones per UFM 2025
+    // Non-UR zones: no formal credit system — site landscaping % applies
+    default: { unitsPerAcre: null, basis: 'nda', label: 'UR Zones — Canopy Credits System', codeRef: 'TMC 13.06.090.B.3.e / UFM Ch.2', note: 'Tacoma UR zones use Tree Canopy Credits (not units/acre). Credits are assigned per tree size at maturity. Required credits are based on lot area. Non-UR zones: overall site landscaping % requirement applies — no tree unit/acre formula.' },
+    zones: {
+      'UR-1': { unitsPerAcre: null, label: 'UR-1 – Urban Residential 1', creditNote: 'Tree Canopy Credits required. Minimum "floor" = 10% canopy coverage of lot without fee-in-lieu. Consult UFM Appendix 1F Required Tree Canopy Credits Worksheet.' },
+      'UR-2': { unitsPerAcre: null, label: 'UR-2 – Urban Residential 2', creditNote: 'Tree Canopy Credits required. Minimum "floor" = 10% canopy coverage of lot without fee-in-lieu. Consult UFM Appendix 1F.' },
+      'UR-3': { unitsPerAcre: null, label: 'UR-3 – Urban Residential 3', creditNote: 'Tree Canopy Credits required. Minimum "floor" = 10% canopy coverage of lot without fee-in-lieu. Consult UFM Appendix 1F.' },
+    }
+  },
+  kitsap: {
+    // KCC 17.495 Table 17.495.030-1 — use GROSS acreage of lot
+    default: { unitsPerAcre: 20, basis: 'gross', label: 'Urban Low / Medium Density Residential', codeRef: 'KCC 17.495.030 Table 17.495.030-1', note: 'Kitsap uses gross acreage (not NDA) for tree credit calculations. Credits × gross acres = required units. Applies in UGAs only — confirm parcel is within a UGA.' },
+    zones: {
+      'Urban Low Density': { unitsPerAcre: 20, label: 'Urban Low Density Residential (ULR)' },
+      'Urban Medium Density': { unitsPerAcre: 25, label: 'Urban Medium Density Residential (UMR)' },
+      'Urban High Density': { unitsPerAcre: 30, label: 'Urban High Density Residential (UHR)' },
+      'Neighborhood Center': { unitsPerAcre: 15, label: 'Neighborhood Center (NC)' },
+      'Regional Center': { unitsPerAcre: 15, label: 'Regional Center (RC)' },
+      'Business/Industrial Center': { unitsPerAcre: 10, label: 'Business/Industrial Center (BIC)' },
+      'Rural Residential': { unitsPerAcre: null, label: 'Rural Residential (outside UGA)', creditNote: 'KCC 17.495 tree canopy requirements apply within UGAs only. Rural Residential outside UGA: no formal tree unit density formula. Consult County for project-specific requirements.' },
+    }
+  },
+  lakewood: {
+    // LMC 18A.70.320 — 50% interior significant tree retention, 100% perimeter within 20 ft
+    // No formal tree unit density calculation — retention-based system
+    default: { unitsPerAcre: null, basis: 'nda', label: 'Retention-Based System (not units/acre)', codeRef: 'LMC 18A.70.320', note: 'Lakewood uses a retention-based system, not tree units per acre. 50% of significant trees in lot interior must be retained for residential and institutional development. 100% of significant trees within 20 ft of perimeter or required buffer must be retained. No numerical units/acre formula — tree count based on site inventory.' }
+  },
+  thurston: {
+    default: { unitsPerAcre: null, basis: 'nda', label: 'No Formal Units/Acre System', codeRef: 'TCC Title 20/24', note: 'Thurston County does not have a formal county-wide tree unit density formula comparable to Pierce County. Tree retention governed by Critical Areas (TCC 24) and Forest Lands (TCC 17.25). Project-specific retention conditions may be imposed through SEPA or permit conditions. Verify with Thurston County Planning.' }
+  },
+  mason: {
+    default: { unitsPerAcre: null, basis: 'nda', label: 'No Formal Units/Acre System', codeRef: 'MCC 8.52 Resource Ordinance', note: 'Mason County does not have a formal tree unit density system. Tree retention governed by Resource Ordinance (MCC 8.52) and project-specific SEPA/permit conditions. Consult Mason County Planning Department directly.' }
+  },
+  puyallup: {
+    default: { unitsPerAcre: null, basis: 'nda', label: 'Incentive/Retention-Based (not units/acre)', codeRef: 'PMC 20.55 / PMC 20.58', note: 'Puyallup does not use a formal tree unit/acre system. Tree retention incentivized through parking reductions (up to 20% reduction for native landscaping/tree retention). Heritage tree registry provides additional protection. Critical area trees governed by PMC 21.06.' }
+  },
+  up: {
+    default: { unitsPerAcre: null, basis: 'nda', label: 'No Formal Units/Acre System', codeRef: 'UPMC 19.65', note: 'University Place does not have a formal tree unit density system. Required landscaping that dies must be replaced (UPMC 19.65.220). Shoreline Vegetation Conservation Areas have enhanced requirements (UPMC 18.25). Tree retention conditions may be imposed through SEPA or site-specific permits.' }
+  }
+};
+
+// =============================================
+// TREE CREDIT CALCULATION FUNCTION
+// =============================================
+function calcTreeCredits(jur, zone, grossAcres, rowAcres) {
+  const data = treeCreditData[jur];
+  if (!data) return null;
+
+  const zoneData = (data.zones && data.zones[zone]) ? data.zones[zone] : data.default;
+  const codeRef = zoneData.codeRef || data.default.codeRef || '';
+  const note = zoneData.note || data.default.note || '';
+  const basis = zoneData.basis || data.default.basis || 'nda';
+  const unitsPerAcre = zoneData.unitsPerAcre !== undefined ? zoneData.unitsPerAcre : data.default.unitsPerAcre;
+  const label = zoneData.label || data.default.label || '';
+  const creditNote = zoneData.creditNote || null;
+
+  const nda = Math.max(0, (parseFloat(grossAcres) || 0) - (parseFloat(rowAcres) || 0));
+  const calcAcres = basis === 'gross' ? (parseFloat(grossAcres) || 0) : nda;
+
+  let result = {
+    label, codeRef, note, basis, calcAcres, unitsPerAcre,
+    nda: nda.toFixed(3),
+    grossAcres: parseFloat(grossAcres) || 0,
+    rowAcres: parseFloat(rowAcres) || 0,
+    creditNote
+  };
+
+  if (unitsPerAcre !== null && calcAcres > 0) {
+    const raw = calcAcres * unitsPerAcre;
+    result.requiredUnits = raw >= 0.5 ? Math.round(raw) : Math.floor(raw);
+    result.formula = `${calcAcres.toFixed(3)} ac (${basis === 'gross' ? 'gross' : 'NDA'}) × ${unitsPerAcre} units/ac = ${result.requiredUnits} tree units`;
+  } else {
+    result.requiredUnits = null;
+  }
+  return result;
+}
+
+
+const zonesByJurisdiction = {
+  tacoma: ['R-1','R-2','R-2SRD','R-3','R-4','R-4-L','R-5','UR-1','UR-2','UR-3','NCX','NRX','C-1','C-2','T','HM','PMI','SRD','PDB','MUS','HMR-SRD'],
+  pierce: ['SF 1','SF 2','SF 3','SF 5','MFR 15','MFR 25','MHR','NCO','GCO','BPC','GBP','PI','IG','IH','RC','AC','RR 5','RR 10','RR 20','GR','AL'],
+  kitsap: ['Rural Residential','Urban Low Density','Urban Medium Density','Urban High Density','Neighborhood Center','Regional Center','Business/Industrial Center','Rural Forestry','Rural Protection','Agricultural'],
+  thurston: ['RRR','RL','RR 1/1','RR 1/5','MLR','LDR','MDR','HDR','B-MU','B-MX','GC','NC','BP','LI','HI','RC','AG'],
+  mason: ['Rural Residential','Rural Rural','Resource Land','Forest Industrial','Commercial','Industrial','Rural Tourist'],
+  puyallup: ['RS-6','RS-8','RS-10','RM-10','RM-20','RM-Core','C-1','C-2','C-L','CBD','CBD-Core','BP','LI','HI','MU'],
+  lakewood: ['R-1','R-2','R-3','R-4','MF','NC','GC','CC','BP/LI','BP','LI','PI','MHP','OS'],
+  up: ['R1','R2','MF-L','MF-H','NC','MU','MU-M','MU-O','Regional Growth Center']
+};
+
+// =============================================
+// OVERLAY / SPECIAL AREA WARNINGS
+// =============================================
+const overlayWarnings = {
+  tacoma: 'Check for Tacoma overlay districts: Urban Residential Transition Areas, FHCA (Fish & Wildlife Habitat Conservation Areas), Shoreline Districts, Historic Preservation overlays, Joint Base Lewis-McChord compatibility zones. Overlays may impose additional landscape requirements. Verify via TMC 13.04.030.',
+  pierce: 'Pierce County overlays include: ECOR / NCOR / TCOR / UCOR Corridors · Oregon White Oak Habitat (PCC 18E.40) · Shoreline Districts · Nisqually watershed buffers · Agricultural Preservation Areas. Overlays may impose additional or modified landscape requirements — verify for your parcel.',
+  kitsap: 'Kitsap County overlays include: Shoreline Master Program areas · Critical Areas (KCC Title 19) · Critical Aquifer Recharge Areas · Naval Base compatibility zones · Urban Growth Area boundaries. Tree canopy requirements (KCC 17.495) apply in UGAs.',
+  thurston: 'Thurston County overlays include: Shoreline Master Program · Critical Areas (TCC Title 24) · Mazama Pocket Gopher / HCP areas · Flood Hazard Areas (FEMA) · Forest Conversion areas (TCC 17.25). Check parcel data sheet for all applicable overlays.',
+  mason: 'Mason County overlays include: Shoreline Management Act areas · Resource Ordinance critical areas (MCC 8.52) · Canal District overlays · Forest Lands (MCC 8.52.060). Mason County has limited formal landscape ordinance — requirements vary significantly by zone and project type.',
+  puyallup: 'Puyallup overlays include: Critical Areas (PMC 21.06) · Shoreline Jurisdiction · Downtown Planned Action Area · Puyallup Tribe consultation area · Flood Hazard Areas. Heritage tree designations may apply (PMC 20.58).',
+  lakewood: 'Lakewood overlays include: Oregon White Oak Habitat (LMC 18A.70.330) · Critical Areas (LMC 18A.80) · I-5 Corridor (10 ft min. landscape buffer along I-5 frontage per LMC 18A.70.140) · Shoreline jurisdiction near American Lake and Steilacoom Lake. Heritage trees require removal permit.',
+  up: 'University Place overlays include: Chambers Creek Properties overlay · Day Island overlay · Transition Overlay Zone · Shoreline Vegetation Conservation Areas (UPMC 18.25) · Critical Areas. Regional Growth Center Form-Based Code (UPMC 19.54) applies in designated areas.'
+};
+
+// =============================================
+// JURISDICTION CODE DATA
+// =============================================
+const jurisdictionData = {
+
+  tacoma: {
+    name: 'City of Tacoma',
+    codeRef: 'TMC Title 13 · TMC 9.20 · 2025 Urban Forest Manual',
+    perimeter: [
+      { ref: 'TMC 13.06.090.B.4.e', text: 'Site Perimeter Landscaping required in all applicable zones around the full site perimeter. Minimum 7 ft wide on sides without abutting street trees; reduced to 5 ft if parcel ≤150 ft depth. Minimum 5 ft on sides with abutting street trees. Must include trees, shrubs, and groundcover.' },
+      { ref: 'TMC 13.06.090.J.5', text: 'Landscape Buffers required in more intensive districts abutting R-district properties. Intended as substantial vegetative screen providing physical and visual separation between dissimilar districts.' },
+      { ref: 'TMC 13.06.090.B', text: 'Buffer/perimeter strips may be broken for primary structures, vehicle and pedestrian access crossings. Cannot be interrupted by accessory structures, paved areas, outdoor storage, or other development.' },
+      { ref: 'UFM Appendix 7D', alt: true, text: 'Species identified as invasive or ecosystem nuisances shall NOT count toward required plantings. No noxious weeds (Class A, B, or C per Pierce County NWCB) permitted in required landscape areas.' },
+    ],
+    parking: [
+      { ref: 'TMC 13.06.090.B.4.g', text: 'Parking Lot Interior Landscaping required. Parking lots of 16 stalls or less are exempt from Interior Planting requirements. Lots of 16 stalls or less located behind buildings accessed by alleys also exempt from Site Perimeter requirements.' },
+      { ref: 'TMC 13.06.090.B.4.e', text: 'Parking Lot Perimeter Landscaping required only between parking lots and streets in Urban Residential districts. In other zones, full site perimeter landscaping applies.' },
+      { ref: 'TMC 13.06.090.B.4.g.(6)', text: 'LID Flexibility: Sites using vegetated LID BMPs (Tacoma Stormwater Mgmt. Manual) as primary stormwater approach receive flexibility on Parking Lot Distribution requirements. If >2/3 of required trees are evergreens, additional flexibility available.' },
+      { ref: 'TMC 13.06.090.B.4.g.(8)', text: 'Tree Retention Parking Flexibility (UR Zones): If complying with tree and parking requirements makes maximum FAR infeasible, parking may be reduced or waived to meet Tree Canopy Credit and retention requirements per RCW 36.70A.' },
+    ],
+    streetTrees: [
+      { ref: 'TMC 13.06.090.B / TMC 9.20', text: 'Street trees required for new commercial/industrial development, remodels ≥50% of structure value, and replacement of >50% of sidewalk along frontage (when ≥50 lf constructed). Street tree planting, pruning, or removal requires permit under TMC 9.20.' },
+      { ref: 'Tacoma Permits (tacomapermits.org)', alt: true, text: 'Tree Sizing: Deciduous — at least 50% min. 2-inch caliper; remaining min. 1.5-inch caliper. Evergreen — at least 50% min. 6 ft tall; remaining min. 5 ft tall at planting.' },
+      { ref: 'TMC 13.06.090.B', text: 'Landscape Management Plan (prepared by RLA, Certified Landscape Technician, or Certified Professional Horticulturalist) required when: ≥500 sq ft landscaped area AND/OR new roadways triggering 10 or more street trees.' },
+    ],
+    trees: [
+      { ref: 'TMC 13.06.090.B.3 / UFM Ch.2', text: 'Tree Canopy Credit System applies in Urban Residential (UR) zones. Credits may be met via on-site planting, tree retention, or offsite Tree Banks. Trees may be planted on a single lot or combination of lots to reach total required credits.' },
+      { ref: 'UFM §2.3', text: 'Tree Retention: Retained trees ≥32" DBH count as 4 required trees. Retaining a tree >12" DBH unlocks setback and parking flexibility per TMC 13.06.090. UR-1/UR-2: 10 ft min. setback reduction for 1 tree; 5 ft for a grove. UR-3: 7.5 ft min.' },
+      { ref: 'UFM §3 / TMC 13.06.020.F.3', text: 'Canopy Loss Fees assessed when Tree Canopy Credit requirements not met or in-lieu fees required. Fees support city tree planting. New evergreen trees above the minimum requirement receive an additional 10% Tree Canopy Credit incentive.' },
+      { ref: 'TMC 9.20 (eff. June 1, 2024)', alt: true, text: 'Heritage Trees: Designated per TMC 9.20. Heritage tree removal requires permit. ISA-certified arborist report required. Trees on public ROW administered by Urban Forestry program. Removal requires Right-of-Way Tree Permit (RTRE Permit).' },
+    ],
+    plans: [
+      { ref: 'TMC 13.06.090.B', text: 'Landscape Plan required for all applicable development. Landscape Management Plan (by RLA or CLT) required for developments with ≥500 sq ft landscaped area or triggering ≥10 street trees.' },
+      { ref: 'TMC 9.20 / TMC 13.05.150', text: 'Automatic irrigation required for all non-drought-tolerant required plantings. In UR-1 and UR-2: min. 50% of non-tree plants must be native to western WA. In Open Space Corridors: min. 75% native within 50 ft of corridor.' },
+    ],
+    actions: [
+      'Confirm UR zone designation — Tree Canopy Credit system applies and drives parking and setback flexibility.',
+      'Check for Heritage Tree designations on site — removal requires separate TMC 9.20 permit and arborist report.',
+      'Review UFM Appendix 7D Prohibited Tree List before finalizing planting palette.',
+      'If project is within 50 ft of a Fish and Wildlife Habitat Conservation Area, minimum 50% native plantings required.',
+      'Street tree permit (RTRE) required separately from landscape plan if ROW trees are affected.'
+    ]
+  },
+
+  pierce: {
+    name: 'Pierce County (Unincorporated)',
+    codeRef: 'PCC Title 18J — Design Standards',
+    perimeter: [
+      { ref: 'PCC 18J.15.040', text: 'Perimeter landscape buffers required per PCC 18J.15.040 based on adjacent use compatibility. Buffer type (L1–L4) determined by relationship between proposed use and adjacent zoning/use.' },
+      { ref: 'PCC 18J.15.040.G', text: 'L1 (Canopy): 1 tree per 40 linear feet of lot line; spacing ≤40 ft. L2/L3 (semi-opaque to full screen): Required when project is adjacent to residential zones. L4: Full solid visual barrier required in high-intensity adjacencies.' },
+      { ref: 'PCC 18J.15.100', text: 'All plantings must be Western WA native and/or drought-tolerant species per PCC 18J.15.100 approved plant tables. Automatic irrigation required for all non-drought-tolerant areas (PCC 18J.15.110).' },
+      { ref: 'PCC 18J.15.040.F', text: 'Up to 1/3 of overall landscaping requirement may be met with green roofs or rooftop gardens.' },
+    ],
+    parking: [
+      { ref: 'PCC 18J.15.090', text: '35% tree shade of total parking lot area required in summer (calculated at 10-year tree maturity). Planting areas must be designed as bioretention or bioswales where soils allow.' },
+      { ref: 'PCC 18J.15.090', text: 'Parking lot islands must be functional as stormwater management where feasible — coordinate with Pierce County Engineering for bioretention design. Curbing shall allow stormwater drainage into landscaped areas.' },
+    ],
+    streetTrees: [
+      { ref: 'PCC 18J.15.050', text: 'Street trees required along all road frontages. Large canopy trees preferred. Root control barrier required within 5 ft of pavement. Species must be selected from county approved list.' },
+    ],
+    trees: [
+      { ref: 'PCC 18J.10.055 / PCC 18J.15.030.C', text: 'Tree Conservation Plan required for applicable projects. Must be prepared per PCC 18J.10.055 by a licensed forester, Registered Landscape Architect (RLA), or qualified arborist.' },
+      { ref: 'PCC 18J.15.030.G', text: 'Minimum 30% of significant trees must be retained; retention must reflect species and age diversity — not just the easiest or smallest trees.' },
+      { ref: 'PCC 18J.15.030.F', text: 'Replacement trees: Minimum 30% of replacement trees must be coniferous species. No single species shall exceed 25% of total replacement tree count (species diversity requirement).' },
+      { ref: 'PCC 18E.40', alt: true, text: 'Oregon White Oak (OWO) receives additional protections under PCC 18E.40. Confirm OWO habitat presence on or adjacent to site. OWO within OWO habitat areas subject to enhanced retention and mitigation requirements.' },
+    ],
+    plans: [
+      { ref: 'PCC 18J.15', text: 'Landscape Plan and Tree Conservation Plan (PCC 18J.10.055) both required as part of permit submittal. Species must be drawn from PCC 18J.15.100 approved plant tables.' },
+      { ref: 'PCC 18J.15.110', text: 'Automatic irrigation required for all non-drought-tolerant landscaped areas.' },
+    ],
+    actions: [
+      'Tree Conservation Plan required per PCC 18J.10.055 — hire licensed forester, RLA, or qualified arborist.',
+      'Bioretention MANDATORY in parking lot islands where soils allow — coordinate with Pierce County Engineering.',
+      'Oregon White Oak check: Confirm OWO habitat on/adjacent to site — PCC 18E.40 additional protections apply.',
+      'Verify perimeter buffer type (L1–L4) for each property line based on adjacent zone/use.',
+      'Confirm species list against PCC 18J.15.100 approved plant tables before finalizing planting plan.'
+    ]
+  },
+
+  kitsap: {
+    name: 'Kitsap County (Unincorporated)',
+    codeRef: 'KCC Title 17 — Development Regulations',
+    perimeter: [
+      { ref: 'KCC 17.500 / 17.385', text: 'Perimeter Landscaping Buffer required along perimeters of multifamily residential (≥10 du/ac), commercial, and industrial/business center developments. Installation varies in numbers and types based on proposed use and surrounding zones.' },
+      { ref: 'KCC 17.385.B', text: 'Screening Buffer required when perimeters abut different uses and/or zones — full sight-obscuring screen required. Standards: (a) Two offset rows of evergreen trees planted 10 ft on center + groundcover; OR (b) 6 ft screening fence + single row of evergreen trees 10 ft on center + groundcover.' },
+      { ref: 'KCC 17.500', text: 'Like-use buffer required along perimeters of developments abutting similar zones/uses. Retention of natural vegetation required where feasible. Trees, shrubs, groundcovers, and/or fencing provided as required.' },
+      { ref: 'KCC 17.500', text: 'Minimum sizes at installation: 2-inch caliper deciduous trees; 8 ft minimum height multi-stemmed trees (e.g. vine maple). All planting beds: min. 2-inch bark mulch; topsoil/amendments as needed.' },
+    ],
+    parking: [
+      { ref: 'KCC 17.490 / KCC 17.700', text: 'Parking lot landscaping required per KCC 17.490 and Appendix A (KCC 17.700). Refer to Appendix A for graphical standards. Parking lot maximum: 110% of required spaces — variance required above this threshold (KCC 17.490.030).' },
+      { ref: 'KCC 17.500', text: 'Screening required around storm drainage facilities with sight-obscuring planting. Screening required around trash receptacles, mechanical and electrical equipment using evergreen shrubs sized adequate to screen majority of equipment while providing access.' },
+    ],
+    streetTrees: [
+      { ref: 'KCC 16.24 / KCC 17.500', text: 'Street trees required along all streets classified as principal or minor arterial, collector, or local subcollector. Minimum 1 tree per 25 linear feet of road frontage; spaced no further than 35 ft apart. Species must be large canopy unless otherwise approved.' },
+      { ref: 'KCC 16.24', text: 'Street trees may be located in road right-of-way, front yards of individual lots, or access tracts. May be installed before final plat approval or before certificate of occupancy for individual building permits.' },
+    ],
+    trees: [
+      { ref: 'KCC 17.495', text: 'Tree Canopy Requirements apply in Urban Growth Areas (KCC 17.495). Landscape plans must include: tree density calculations (required vs. provided units) and location and DBH of all trees ≥1" if used for credit.' },
+      { ref: 'KCC 17.495.060', text: 'Tree canopy compliance demonstration required on landscape plan per KCC 17.495.060. Tree canopy protection plan required as part of landscaping plan for applicable projects (KCC 16.48).' },
+      { ref: 'KCC Title 19', alt: true, text: 'Critical Areas Ordinance (KCC Title 19) last updated 2017; periodic review underway (2024). Vegetation removal in critical area buffers restricted. Critical aquifer recharge areas: check for hydrogeological requirements.' },
+    ],
+    plans: [
+      { ref: 'KCC 17.500', text: 'Landscape plan required: drawn to scale, include botanical name/common name/size at installation/spacing for all plants. Include notation that plant quantities are determined by required spacing and all planting beds receive groundcover and 2-inch bark mulch.' },
+      { ref: 'KCC 17.495', text: 'If tree canopy standards applicable, tree canopy protection plan required as part of landscape plan submittal. Installation and maintenance per American Nursery Landscaping Association standards.' },
+    ],
+    actions: [
+      'Confirm whether parcel is within a Kitsap UGA — tree canopy requirements (KCC 17.495) apply in UGAs.',
+      'Verify street frontage classification — arterial/collector frontages require street trees at 1 per 25 lf.',
+      'Check adjacency to different use zones — if so, full sight-obscuring Screening Buffer required under KCC 17.385.B.',
+      'Review Critical Areas Ordinance (KCC Title 19) for any critical areas on or within 200 ft of site.',
+      'Parking lot design: verify maximum parking does not exceed 110% of required (variance required above that).'
+    ]
+  },
+
+  thurston: {
+    name: 'Thurston County (Unincorporated)',
+    codeRef: 'TCC Title 20/22/23 — Zoning; TCC Title 24 — Critical Areas',
+    perimeter: [
+      { ref: 'TCC Chapter 20.45 / 22.47', text: 'Perimeter landscaping required per zoning code. Standards vary by zone — rural zones (TCC 20) and urban zones (TCC 22/23) have different requirements. Buffer type and width determined by adjacent land use compatibility.' },
+      { ref: 'TCC 20.45', text: 'All required landscaping shall be regularly maintained and must function as intended (e.g. stormwater if bioretention). No noxious weeds (Class A, B, or C per WAC 16-750) or invasive species (TCC 24.03.010) permitted in required landscape areas.' },
+    ],
+    parking: [
+      { ref: 'TCC Chapter 20.44 / 20.45', text: 'All parking facilities must comply with landscaping provisions of TCC Chapter 20.45. Parking lot islands shall be designed to maximize function as stormwater conveyance, detention, and/or treatment systems.' },
+      { ref: 'TCC 20.44', text: 'Parking space dimensions: 9 ft × 18 ft standard; up to 35% may be compact (7.5 ft × 15 ft); up to 10% oversize (9 ft × 20 ft). Access to all parking areas must be from a dedicated street via approved driveway openings.' },
+      { ref: 'TCC 20.45', text: 'Landscaping islands within parking facilities shall be designed for stormwater — curbing must allow drainage into landscaped areas. Landscaping must be maintained to continue proper stormwater function.' },
+    ],
+    streetTrees: [
+      { ref: 'TCC Title 20 / 22', text: 'Street tree requirements vary by UGA and zone. Consult applicable UGA zoning chapter (TCC 22 for Tumwater/Lacey/Olympia areas). Street trees typically required along collector and arterial frontages.' },
+    ],
+    trees: [
+      { ref: 'TCC 24 / TCC 17.25', text: 'Tree removal in critical areas or buffers requires Critical Area Review Permit (CARP). Hazard trees in critical areas require Tree Risk Assessment by ISA-certified arborist. Seasonal clearing restrictions: no clearing Nov–Jan on fine-grained slopes >5%.' },
+      { ref: 'TCC 17.25', text: 'Forest Lands Conversion: Clearing for development may require Thurston County Forest Conversion permit. SEPA review required for Class IV-General permits. North County UGA conversions must comply with TCC 17.25.400.' },
+      { ref: 'TCC 24', alt: true, text: 'Hazard tree permit required for removal of trees within a critical area or buffer. "Within tree length of existing permanent structure" exemption available if trees are outside critical areas and buffers.' },
+    ],
+    plans: [
+      { ref: 'TCC Title 20 / TCC 24', text: 'Tree Protection Plan required for clearing near protected trees (see TCC Chapter 16.08 for standards). Must include surveyed locations of trees/groves, critical root zones, narrative description, and timeline for clearing and installation of tree protection measures.' },
+      { ref: 'TCC Chapter 20.44', text: 'Landscape plan required as part of building or hearing examiner permit. Not required for SFR or 2-family with attached garages. Professional review varies by jurisdiction / project size.' },
+    ],
+    actions: [
+      'Confirm which TCC chapter applies — rural zoning (Title 20), Tumwater UGA (Title 22), or other UGA.',
+      'Review parcel for critical areas (TCC Title 24) — HCP areas (pocket gopher, vesper sparrow) are widespread in Thurston County.',
+      'Check for forest conversion requirements if significant trees/vegetation on site — TCC 17.25 may require permit.',
+      'Seasonal restriction: no land clearing Nov–Jan on fine-grained soils with slope >5%.',
+      'Parking lot islands must be designed for stormwater — coordinate landscape plan with civil/drainage design.'
+    ]
+  },
+
+  mason: {
+    name: 'Mason County (Unincorporated)',
+    codeRef: 'Mason County Zoning Ordinance; MCC 8.52 Resource Ordinance',
+    perimeter: [
+      { ref: 'Mason Co. Zoning Ord. Art. III', text: 'Perimeter landscaping required where indicated by zone and project type. Standards less prescriptive than urban counties — consult Planning Department for zone-specific requirements. A landscape plan must be submitted and approved before a certificate of occupancy is issued.' },
+      { ref: 'Mason Co. Zoning Ord.', text: 'Landscaping of Rights-of-Way and Other Adjacent Public Open-Space Areas: Public rights-of-way and public open-space areas adjacent to required landscaped areas shall be landscaped per the applicable ordinance. Performance bond required where landscaping not installed at time of occupancy.' },
+    ],
+    parking: [
+      { ref: 'Mason Co. Zoning Ord. §3.XX', text: 'Parking lot landscaping shall be in units not less than 5 ft in any single dimension and not less than 150 sq ft per single island area. Not more than two landscaped units of 150 sq ft may be combined in plans. All vehicular use areas must be paved and curbed.' },
+      { ref: 'Mason Co. Zoning Ord.', text: 'Visual barrier (at least 8 ft above ground within 5 years of planting) required where parking abuts incompatible uses. Planning Commission may reduce or waive requirements where consistent with ordinance intent.' },
+    ],
+    streetTrees: [
+      { ref: 'Mason Co. Zoning Ord.', text: 'Street tree requirements limited in rural unincorporated areas. Required at entrances to development consistent with applicable landscape standards. Consult County Road Department for frontage improvement requirements.' },
+    ],
+    trees: [
+      { ref: 'MCC 8.52 Resource Ordinance', text: 'Resource Ordinance (MCC 8.52) governs critical areas, forest lands, and shorelines. Forest Practices on forest land subject to State Forest Practices Act (RCW 76.09). Conversion to non-forest use requires Class IV-General Forest Practices permit from DNR or County.' },
+      { ref: 'MCC 8.52', alt: true, text: 'Vegetation clearing in critical area buffers (wetlands, streams, geologically hazardous areas) regulated by Resource Ordinance. Shoreline buffers apply per Shoreline Master Program. Consult Mason County Environmental Health before clearing near water features.' },
+      { ref: 'Mason Co. Zoning Ord.', text: 'No formal county-wide significant tree preservation ordinance comparable to urban jurisdictions. Tree retention encouraged as part of site design. Site-specific conditions may be imposed through SEPA review or conditional use permits.' },
+    ],
+    plans: [
+      { ref: 'Mason Co. Zoning Ord.', text: 'Landscape plan required as part of permit for applicable commercial and multi-family development. Certificate of occupancy shall not be issued unless landscape provisions are met or performance bond has been posted.' },
+      { ref: 'MCC 8.52 / State WAC 222', text: 'If site involves forest land conversion, consult Mason County Planning Department early. SEPA review may be required. Class IV Forest Practices permit may be required from WA DNR.' },
+    ],
+    actions: [
+      'Mason County has relatively limited formal landscape code — confirm requirements directly with Mason County Planning (360-427-9670).',
+      'Check MCC 8.52 Resource Ordinance for all critical area buffers — especially shoreline and wetland setbacks.',
+      'If forest clearing is involved, confirm whether DNR Forest Practices permit is required.',
+      'SEPA checklist may be required depending on project scope — consult County at pre-application.',
+      'Performance bond may be required if landscaping cannot be installed prior to occupancy.'
+    ]
+  },
+
+  puyallup: {
+    name: 'City of Puyallup',
+    codeRef: 'PMC Title 20 — Zoning Code; PMC 20.58 Landscaping',
+    perimeter: [
+      { ref: 'PMC 20.58', text: 'Perimeter Landscaping Required: The full perimeter of all sites shall be landscaped to the full depth of required setbacks OR 12 ft — whichever is less. In no event shall a perimeter landscaping buffer be smaller than 6 ft. Roads and driveways through perimeter areas shall be no wider/more numerous than necessary for safe access.' },
+      { ref: 'PMC 20.26.500(1)', text: 'Buffering – Side and Rear Yards: 30 ft landscape buffer with dense vegetative screen required on nonresidential development sites abutting a residential zone, public park, or city open space. 6 ft masonry wall or wood opaque fence required along inside edge of buffer.' },
+      { ref: 'PMC 20.26.500(2)', text: 'Buffering – Front Yard: Where front yard faces RS zone, 30 ft buffer applies. Deciduous trees may substitute for evergreen trees in front yard buffer. 6 ft fence at front setback line also required, or alternatively residential-compatible architecture standards apply.' },
+      { ref: 'PMC 20.58', text: 'All portions of a lot not devoted to building, future buildings, parking, storage, or accessory uses shall be landscaped. Trash containers shall be screened from abutting properties and ROW by substantial sight-obscuring landscaping or fences/walls.' },
+    ],
+    parking: [
+      { ref: 'PMC 20.58', text: 'Internal Parking Lot Landscaping: All paved areas >10,000 sq ft: min. 5% of paved area landscaped. If >20% over minimum required stalls OR total paved area >100,000 sq ft: min. 10% of paved area landscaped. Perimeter landscaping does NOT count toward internal parking lot % requirement.' },
+      { ref: 'PMC 20.58', text: 'Internal landscaping design per Type IV landscaping standards in VMS (Vegetation Management Standards) manual. Parking lot perimeter abutting ROW: screened with landscaping, berms, fencing, or combination — must achieve 50% screening of parked vehicles to 3 ft height within 2 years.' },
+      { ref: 'PMC 20.26 / PMC 20.55', text: 'Multi-Family Parking: Rows of angled/perpendicular parking >120 ft without landscape break prohibited. Landscape break: min. 100 sq ft + 1 tree. For >20 stalls, pedestrian sidewalks required from parking to residential units.' },
+      { ref: 'PMC 20.55', text: 'Parking Reduction for LID/Tree Retention: Up to 10% reduction for pervious pavement or LID stormwater facility. Up to 20% reduction for clustered design where reduced area used for tree retention or native landscaping.' },
+    ],
+    streetTrees: [
+      { ref: 'PMC 11.08.135', text: 'Street trees required when substantial improvement occurs on property fronting a dedicated street. Curb, gutter, planter strips, street trees, sidewalks, storm drainage, street lighting, and half-street paving required per ordinance.' },
+      { ref: 'PMC 20.58 / VMS Appendix', text: 'Street tree installation standards per VMS Manual Appendix 20.4. Landscape plans for projects with ≥10,000 sq ft new structures or ≥20,000 sq ft affected site area require a licensed Landscape Architect in WA.' },
+    ],
+    trees: [
+      { ref: 'PMC 20.58', text: 'Heritage Trees: City may establish Heritage Tree Registry. Nominated for notable characteristics (age, size, location, species, or historical significance). Heritage tree designation provides additional protection — consult Development Services Director for current registry status.' },
+      { ref: 'PMC 20.58 / PMC 21.06', text: 'Critical Area Tree Retention: Trees within critical areas (PMC 21.06) and their buffers subject to Environmental Critical Areas regulations. Density transfer from critical area buffers allowed per PMC 20.25.020(18) at up to 125% of max. developable density on non-critical area portions.' },
+      { ref: 'PMC 20.55 / PMC 20.58', alt: true, text: 'No formal city-wide significant tree retention ordinance beyond heritage trees and critical area trees. Tree retention strongly incentivized via parking reductions (up to 20%) for native landscaping/tree retention areas per PMC 20.55.' },
+    ],
+    plans: [
+      { ref: 'PMC 20.58.010', text: 'Landscape plan required before any building permit, parking lot, or building relocation is issued. Plans for projects ≥10,000 sq ft structure or ≥20,000 sq ft site area must be prepared by a WA-licensed Landscape Architect.' },
+      { ref: 'PMC 20.58 / PMC 21.10', text: 'Stormwater facilities (permitted ≥Jan 1, 2017) must be maintained per operations and maintenance manual. Irrigation plan may be required. VMS Manual governs plant installation, maintenance, and replacement standards.' },
+    ],
+    actions: [
+      'Determine if project is within Puyallup Downtown Planned Action Area — modified parking and landscaping standards apply in CBD/CBD-Core/RM-Core zones.',
+      'If abutting RS zone: 30 ft landscape buffer + 6 ft fence required on side/rear yards — confirm all property lines.',
+      'Parking lot landscaping: if paved area >10,000 sq ft, 5% internal landscaping required; calculate carefully.',
+      'Check for heritage tree designations on site — consult Development Services Director.',
+      'If project ≥10,000 sq ft structure or ≥20,000 sq ft site: Landscape Plan must be by WA-licensed Landscape Architect.'
+    ]
+  },
+
+  lakewood: {
+    name: 'City of Lakewood',
+    codeRef: 'LMC Title 18A — Land Use and Development Code',
+    perimeter: [
+      { ref: 'LMC 18A.70.150 Type I', text: 'Type I Vegetative Buffer (perimeter standard): Min. 8 ft wide landscaping strip (increases to 10 ft and 15 ft as required by zone per LMC 18A.70.160). 1 evergreen or deciduous tree per 20 linear feet; trees spaced ≤20 ft on center along full extent of strip.' },
+      { ref: 'LMC 18A.70.140 / 18A.70.160', text: 'Perimeter landscaping required per LMC 18A.70.150 and 18A.70.160 (by zoning district). Parking lot perimeter abutting residential zones/uses: Type I landscaping + solid wood or equivalent fence required. "Adjacent residential" includes immediately adjacent AND lots adjacent to abutting property.' },
+      { ref: 'LMC 18A.70.140', text: 'I-5 Corridor Requirement: Perimeter landscape strip along I-5 frontage or railroad ROW adjacent to I-5 shall be a minimum of 10 ft depth, unless a larger area is otherwise required. All required landscaping shall extend to curb line or property line, whichever is greater.' },
+      { ref: 'LMC 18A.70.140', text: 'All portions of a lot not devoted to building, parking, storage, or accessory uses shall be landscaped. Type III Open Space is the minimum if no other standard applies. Concrete curbing required around all required landscaping areas.' },
+    ],
+    parking: [
+      { ref: 'LMC 18A.70.140 / 18A.70.150', text: 'Parking Lot Interior: All parking areas >20,000 sq ft: min. 10% of total parking area (including drive aisles, maneuvering, loading) must be landscaped. Required perimeter landscaping shall NOT count toward the 10% figure.' },
+      { ref: 'LMC 18A.70.150 Type I/III', text: 'Perimeter landscaping around parking area: Type I Vegetative Buffer. Internal landscaping: if included, min. vegetative groundcover and trees per Type III Open Space. Landscaping must not conflict with safety of adjacent sidewalks or traffic sight lines.' },
+      { ref: 'LMC 18A.80', text: 'All parking areas and access drives shall be paved (asphalt or concrete). Wheel stops or curbing required to protect landscaping from vehicle encroachment. Landscaping not to be placed inside fences unless PPW determines no detriment to landscaping purpose.' },
+    ],
+    streetTrees: [
+      { ref: 'LMC 18A.70.150 Type II', text: 'Type II Streetscape: Deciduous street trees required along entire street frontage at ≤30 ft on center spacing, or to continue existing pattern. 3–8 ft wide vegetative groundcover landscaping strip between curb and sidewalk (at City Engineer discretion).' },
+      { ref: 'LMC 18A.70.170 / LMC 12.09', text: 'Street tree wells: min. 4 ft in any dimension with grating approved by City Engineer required when trees in sidewalk. Sidewalk must maintain min. 48 inch clear width. Trees not in sidewalk shall be centered on landscaping strip or behind sidewalk within 10 ft of ROW.' },
+    ],
+    trees: [
+      { ref: 'LMC 18A.70.320', text: 'Significant Tree Preservation required. Perimeter Trees: All significant trees within 20 ft of lot perimeter or required buffer (whichever is greater) shall be preserved. Exceptions only for required driveways, buildings, utilities, or vision clearance.' },
+      { ref: 'LMC 18A.70.320', text: 'Interior Tree Retention: 50% of significant trees within lot interior must be preserved for: new SFR, multifamily residential, and public/quasi-public institutional development. Oregon White Oak (OWO): additional protections per LMC 18A.70.330 — OWO in OWO habitat requires critical root zone protection.' },
+      { ref: 'LMC 18A.70.310 / 18A.70.320', alt: true, text: 'Tree Retention Plan required showing location, species, dripline of all significant trees. Must show proposed retention trees, removal trees, and protection techniques during construction. No clearing/grading allowed until tree retention and/or landscape plans are approved.' },
+      { ref: 'LMC 2.48.040(D) Heritage Trees', alt: true, text: 'Heritage Trees: Removal requires permit. City staff + ISA-certified arborist evaluation required. Approval only if arborist report demonstrates removal necessary for health/safety, infrastructure, protection of buildings, or reasonable use.' },
+    ],
+    plans: [
+      { ref: 'LMC 18A.70.130', text: 'Landscape Plan required for all multifamily and nonresidential development. Must include: property lines/perimeter areas, open spaces, parking lot planting areas, plant schedule with mature sizes, timeline for installation, and cost estimate for purchase, installation, and 3 years maintenance.' },
+      { ref: 'LMC 18A.70.130.E', text: 'Irrigation Plan required for all multifamily or nonresidential development. Must be prepared by WA Registered Landscape Architect or certified irrigation designer (exception: short plats may be prepared by applicant).' },
+    ],
+    actions: [
+      'Tree Retention Plan required — no clearing/grading until approved. Identify all significant trees and 20 ft perimeter retention zone.',
+      'Check for Oregon White Oak (OWO) on site — LMC 18A.70.330 additional protections and critical root zone requirements apply.',
+      'I-5 frontage: confirm 10 ft minimum perimeter landscape depth if site abuts I-5 or railroad adjacent to I-5.',
+      'Parking area >20,000 sq ft triggers 10% interior landscaping requirement (not counting perimeter).',
+      'Irrigation plan required — must be by WA-licensed Landscape Architect or certified irrigation designer.',
+      'If abutting residential: Type I buffer + solid wood fence required around parking lot perimeter.'
+    ]
+  },
+
+  up: {
+    name: 'City of University Place',
+    codeRef: 'UPMC Title 19 — Zoning Code; UPMC 19.65 Landscaping/Trees',
+    perimeter: [
+      { ref: 'UPMC 19.65.150', text: 'Perimeter Landscaping required per UPMC 19.65.150(A) and (B) tables — landscape level (I, II, III, etc.) determined by proposed use AND abutting land use/zone for each lot line. When two or more properties share a common driveway or parking area, perimeter landscaping along the shared line may be waived.' },
+      { ref: 'UPMC 19.65 / 19.65.140', text: 'Landscape Levels I–III (and higher) defined in UPMC 19.65. Level requirements by zone tabulated in UPMC 19.65.150(A)(B). Refer to Figures 1, 2, and 3 in UPMC 19.65.140 for graphic illustrations of perimeter landscaping requirements.' },
+      { ref: 'UPMC 19.65', text: 'Jointly developed contiguous lots: perimeter buffering between jointly developed lots not required. Dead landscaping must be replaced in accordance with UPMC 19.65.220. Water conservation period exemption: landscaping installation may be deferred during mandatory conservation periods.' },
+    ],
+    parking: [
+      { ref: 'UPMC 19.65 / 19.65.110', text: 'Perimeter Street Landscaping: Any portion of a parking lot, outdoor sales area, or large impervious surface within 20 ft of a public road ROW must install Level III landscaping along that perimeter. See Figure 3 in UPMC 19.65.140.' },
+      { ref: 'UPMC 19.65', text: 'Interior Landscaping: All surface parking lots with ≥10 spaces or combined outdoor sales areas >1,600 sq ft must provide interior landscaping. Row Requirement: max. 10 consecutive spaces without an intervening island or peninsula (or max. 20 spaces if row fronts a min. 8 ft wide landscaping area). Landscaping island/peninsula required at end of each row of ≥4 spaces terminating in parking or circulation area.' },
+      { ref: 'UPMC 19.50 / LID Manual', text: 'Parking lot landscape islands shall be designed to accommodate stormwater runoff and infiltration per Low Impact Development Technical Guidance Manual for Puget Sound. LID approach incentivized in mixed use zones (UPMC 19.50).' },
+    ],
+    streetTrees: [
+      { ref: 'UPMC 19.50.440 / UPMC Title 13', text: 'Street trees required in accordance with UPMC 19.50.440 and 19.50.450 for arterial streets. Species must be from approved list in UPMC Title 13. Minimum diameter as specified in UPMC Title 13. Special effect lighting encouraged to highlight street trees in mixed use/RGC areas.' },
+    ],
+    trees: [
+      { ref: 'UPMC 19.65 / 18.25', text: 'Tree and vegetation retention required. Trees within Shoreline Vegetation Conservation Areas (UPMC 18.25) subject to enhanced retention and buffer requirements. No formal city-wide significant tree preservation ordinance — project-specific tree retention conditions may be imposed via SEPA or permit conditions.' },
+      { ref: 'UPMC 18.25.100', alt: true, text: 'Shoreline Vegetation Conservation Areas: Impervious area within 100 ft of ordinary high water mark may be increased from 50% to 65% only by restoring/enhancing vegetation conservation area. Decks in conservation area buffers subject to UPMC 18.25.100(E)(3) standards.' },
+      { ref: 'UPMC 19.65.220', text: 'Required landscaping (including trees) that has died shall be replaced per UPMC 19.65.220. Replacement must be in-kind or equivalent. Ongoing maintenance is the obligation of the property owner.' },
+    ],
+    plans: [
+      { ref: 'UPMC 19.65', text: 'Landscape plan required for all applicable development. Plan must demonstrate compliance with perimeter landscape level tables (UPMC 19.65.150) for each property line. Director may permit alternative landscaping per UPMC 19.65.170 where equivalent or better results demonstrated.' },
+      { ref: 'UPMC 19.70 / UPMC 19.65', text: 'Open space/park required in new SFR subdivisions ≥10 lots and MF developments >10 units: min. 7% of property set aside as improved open space or park. Mechanical equipment and outdoor storage must be screened from view and integrated into building design.' },
+    ],
+    actions: [
+      'Identify landscape level required for each property line using UPMC 19.65.150(A)(B) tables — varies by both proposed use AND adjacent use.',
+      'Parking lots with ≥10 spaces: confirm interior row requirements (max 10 consecutive spaces without island).',
+      'Parking lot perimeter within 20 ft of public ROW requires Level III landscaping.',
+      'Check if site is within Shoreline Vegetation Conservation Area (UPMC 18.25) — enhanced retention requirements apply.',
+      'If in Regional Growth Center (UPMC 19.54) Form-Based Code area, additional street tree and streetscape standards apply.',
+      'For MF developments >10 units or SFR subdivisions ≥10 lots: 7% open space/park dedication required.'
+    ]
+  }
+};
+
+// =============================================
+// ZONE DROPDOWN POPULATION
+// =============================================
+function onJurisdictionChange() {
+  const jur = document.getElementById('jurisdiction').value;
+  const sel = document.getElementById('planZone');
+  sel.innerHTML = '<option value="">— Select Zone —</option>';
+  if (jur && zonesByJurisdiction[jur]) {
+    zonesByJurisdiction[jur].forEach(z => {
+      const opt = document.createElement('option');
+      opt.value = z; opt.textContent = z;
+      sel.appendChild(opt);
+    });
+  }
+}
+
+// =============================================
+// ADJACENT ZONE BUFFER ANALYSIS
+// =============================================
+function getBufferNote(jurisdiction, adjZones) {
+  const hasResidential = adjZones.some(z => z && z.toLowerCase().includes('resident'));
+  const hasIndustrial = adjZones.some(z => z && z.toLowerCase().includes('industrial'));
+  const hasMixed = adjZones.some(z => z && (z.toLowerCase().includes('commercial') || z.toLowerCase().includes('mixed')));
+  const projType = document.getElementById('projType').value;
+  const isNonRes = ['commercial','industrial','mixed','public'].includes(projType);
+
+  let notes = [];
+  if (hasResidential && isNonRes) {
+    notes.push('⚠️ <strong>Adjacent Residential Detected:</strong> Enhanced buffer/screening required between your non-residential use and adjacent residential zones. See perimeter landscaping section for buffer type and width requirements.');
+  }
+  if (hasIndustrial && projType === 'res-sf') {
+    notes.push('⚠️ <strong>Adjacent Industrial Detected:</strong> Screening or solid barrier typically required between industrial and residential uses. Confirm buffer type with jurisdiction.');
+  }
+  if (notes.length === 0) notes.push('Adjacent zones noted above — confirm buffer type for each lot line using applicable landscape tables or code sections referenced below.');
+  return notes.join('<br>');
+}
+
+// =============================================
+// PARKING CALCULATIONS
+// =============================================
+function getParkingCalcNote() {
+  const stalls = parseInt(document.getElementById('parkingStalls').value) || 0;
+  const paved = parseInt(document.getElementById('pavedArea').value) || 0;
+  const jur = document.getElementById('jurisdiction').value;
+  let notes = [];
+
+  if (stalls > 0) {
+    if (stalls <= 16 && jur === 'tacoma') notes.push(`${stalls} stalls — Under 16 stalls: Exempt from Interior Planting requirements (Tacoma). Parking lot perimeter landscaping still required per site perimeter standards.`);
+    if (stalls >= 10 && jur === 'up') notes.push(`${stalls} stalls — ≥10 spaces triggers Interior Landscaping requirements (UP). Max 10 consecutive spaces without island.`);
+  }
+  if (paved > 0) {
+    if (paved > 10000 && jur === 'puyallup') {
+      const req5 = Math.round(paved * 0.05);
+      notes.push(`Paved area ${paved.toLocaleString()} sq ft > 10,000 sq ft: Min. 5% internal landscaping required = <strong>${req5.toLocaleString()} sq ft</strong> (PMC 20.58). Perimeter landscaping excluded from this calculation.`);
+    }
+    if (paved > 100000 && jur === 'puyallup') {
+      const req10 = Math.round(paved * 0.10);
+      notes.push(`Paved area > 100,000 sq ft also triggers 10% = <strong>${req10.toLocaleString()} sq ft</strong> internal landscaping requirement.`);
+    }
+    if (paved > 20000 && jur === 'lakewood') {
+      const req10 = Math.round(paved * 0.10);
+      notes.push(`Paved area ${paved.toLocaleString()} sq ft > 20,000 sq ft: Min. 10% internal landscaping required = <strong>${req10.toLocaleString()} sq ft</strong> (LMC 18A.70.140). Perimeter landscaping excluded.`);
+    }
+  }
+  if (notes.length === 0 && (stalls > 0 || paved > 0)) {
+    notes.push(`${stalls > 0 ? stalls + ' stalls' : ''}${stalls > 0 && paved > 0 ? ' / ' : ''}${paved > 0 ? paved.toLocaleString() + ' sq ft paved area' : ''} — Review applicable parking lot landscaping thresholds in the code sections below.`);
+  }
+  return notes;
+}
+
+// =============================================
+// GENERATE REPORT
+// =============================================
+function generateReport() {
+  const jur = document.getElementById('jurisdiction').value;
+  if (!jur) { alert('Please select a jurisdiction first.'); return; }
+
+  const data = jurisdictionData[jur];
+  const parcel = document.getElementById('parcelNum').value || '—';
+  const addr = document.getElementById('siteAddr').value || '—';
+  const zone = document.getElementById('planZone').value || '—';
+  const projType = document.getElementById('projType').value;
+  const projTypeLabel = document.getElementById('projType').options[document.getElementById('projType').selectedIndex].text || '—';
+  const acres = document.getElementById('siteAcres').value || '—';
+  const adjN = document.getElementById('adjN').value;
+  const adjS = document.getElementById('adjS').value;
+  const adjE = document.getElementById('adjE').value;
+  const adjW = document.getElementById('adjW').value;
+  const prepBy = document.getElementById('preparedBy').value || '—';
+  const rDate = document.getElementById('reportDate').value || new Date().toLocaleDateString('en-US');
+  const notes = document.getElementById('projNotes').value;
+
+  const grossAcres = document.getElementById('grossAcres').value || '';
+  const rowAcres = document.getElementById('rowAcres').value || '';
+  const treeCalcBasis = document.getElementById('treeCalcBasis').value;
+
+  const adjZones = [adjN, adjS, adjE, adjW];
+  const bufferNote = getBufferNote(jur, adjZones);
+  const parkingCalcs = getParkingCalcNote();
+
+  // Tree credit calculation
+  const tc = calcTreeCredits(jur, zone, grossAcres, rowAcres);
+  let treeCreditHTML = '';
+  if (tc) {
+    const ndaRow = grossAcres ? `
+      <tr><td style="color:var(--stone);font-size:0.75rem;padding:5px 8px;white-space:nowrap">Gross Site Area</td><td style="padding:5px 8px;font-weight:600">${parseFloat(grossAcres).toFixed(3)} ac</td></tr>
+      <tr><td style="color:var(--stone);font-size:0.75rem;padding:5px 8px;white-space:nowrap">ROW Deduction</td><td style="padding:5px 8px;font-weight:600">− ${parseFloat(rowAcres||0).toFixed(3)} ac</td></tr>
+      <tr style="border-top:1px solid #ccc"><td style="color:var(--stone);font-size:0.75rem;padding:5px 8px;white-space:nowrap">Net Developable Area</td><td style="padding:5px 8px;font-weight:700;color:var(--forest)">${tc.nda} ac</td></tr>
+    ` : '';
+    const calcRow = tc.requiredUnits !== null ? `
+      <tr style="border-top:2px solid var(--gold)"><td style="color:var(--stone);font-size:0.75rem;padding:5px 8px;white-space:nowrap">Calc. Basis</td><td style="padding:5px 8px;font-size:0.78rem">${tc.basis === 'gross' ? 'Gross acreage' : 'NDA (net developable)'}</td></tr>
+      <tr><td style="color:var(--stone);font-size:0.75rem;padding:5px 8px;white-space:nowrap">Formula</td><td style="padding:5px 8px;font-size:0.78rem">${tc.formula}</td></tr>
+      <tr style="background:var(--mist)"><td style="font-size:0.78rem;font-weight:700;padding:6px 8px;color:var(--forest)">Required Tree Units</td><td style="padding:6px 8px;font-size:1.1rem;font-weight:700;color:var(--forest)">${tc.requiredUnits}</td></tr>
+    ` : `<tr><td colspan="2" style="padding:8px;font-size:0.8rem;color:#555;font-style:italic">${tc.creditNote || tc.note || 'See tree conservation section below.'}</td></tr>`;
+
+    treeCreditHTML = `
+      <div class="code-section sections-grid full" style="margin-bottom:16px">
+        <div class="code-section-head" style="background:#2a5040"><span class="ico">🌲</span> Net Developable Area &amp; Tree Credit Units</div>
+        <div class="code-section-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+            <div>
+              <table style="width:100%;border-collapse:collapse;font-size:0.83rem">
+                ${ndaRow}
+                ${calcRow}
+              </table>
+            </div>
+            <div style="background:var(--mist);padding:10px 14px;border-radius:6px;font-size:0.8rem;line-height:1.5;color:#2a3a2a">
+              <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--forest);margin-bottom:5px">${tc.label}</div>
+              <span class="code-item-ref">${tc.codeRef}</span>
+              <div style="margin-top:6px">${tc.note}</div>
+              ${tc.requiredUnits !== null ? `<div style="margin-top:8px;padding:6px 10px;background:white;border-radius:4px;border-left:3px solid var(--gold);font-size:0.78rem;color:#444">30% of required units must be coniferous. No single species &gt;25% of total. Min. 25% of trees in protected tracts (PCC 18J.15.030.F).</div>` : ''}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderItems(items) {
+    return items.map(item => `
+      <div class="code-item">
+        <span class="code-item-ref ${item.alt ? 'alt' : ''}">${item.ref}</span>
+        <div class="code-item-text">${item.text}</div>
+      </div>
+    `).join('');
+  }
+
+  const adjTable = (adjN || adjS || adjE || adjW) ? `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:12px;font-size:0.78rem;">
+      <div style="text-align:center"><div style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em">North</div><div style="font-weight:600">${adjN||'—'}</div></div>
+      <div style="text-align:center"><div style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em">South</div><div style="font-weight:600">${adjS||'—'}</div></div>
+      <div style="text-align:center"><div style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em">East</div><div style="font-weight:600">${adjE||'—'}</div></div>
+      <div style="text-align:center"><div style="color:var(--stone);font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em">West</div><div style="font-weight:600">${adjW||'—'}</div></div>
+    </div>
+    <div style="font-size:0.8rem;color:#444;line-height:1.5;margin-bottom:4px">${bufferNote}</div>
+  ` : '';
+
+  const parkingCalcHTML = parkingCalcs.length > 0 ? `
+    <div style="background:#f0f7ff;border-left:3px solid #4a7ec9;padding:9px 14px;border-radius:0 4px 4px 0;margin-top:10px;font-size:0.8rem;line-height:1.6;color:#1a2a4a">
+      <strong style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:4px">📐 Calculated Requirements</strong>
+      ${parkingCalcs.map(n => `<div>• ${n}</div>`).join('')}
+    </div>
+  ` : '';
+
+  const reportHTML = `
+    <div class="report-header">
+      <div class="report-jurisdiction">${data.name}</div>
+      <div class="report-parcel">📍 <span>${parcel}</span> &nbsp;·&nbsp; ${addr}</div>
+      <div class="report-meta">
+        <span class="meta-badge zone">Zone: ${zone}</span>
+        <span class="meta-badge type">${projTypeLabel}</span>
+        ${acres !== '—' ? `<span class="meta-badge">${acres} ac</span>` : ''}
+        <span class="meta-badge" style="background:var(--stone)">Ref: ${data.codeRef}</span>
+      </div>
+    </div>
+
+    <div class="warning-box">
+      <strong>⚠ Professional Verification Required</strong><br>
+      Verify all requirements with the jurisdiction's planning department before permit submittal. Codes change — always confirm with a licensed professional.
+    </div>
+
+    <div class="overlay-box">
+      <strong>⚠ CHECK FOR OVERLAYS / SPECIAL DISTRICTS</strong><br>
+      ${overlayWarnings[jur]}
+    </div>
+
+    ${adjTable ? `<div class="code-section" style="margin-bottom:16px"><div class="code-section-head"><span class="ico">🏘</span> Adjacent Property Analysis</div><div class="code-section-body">${adjTable}</div></div>` : ''}
+
+    ${treeCreditHTML}
+
+    <div class="sections-grid">
+      <div class="code-section">
+        <div class="code-section-head"><span class="ico">🌿</span> Perimeter Landscaping</div>
+        <div class="code-section-body">${renderItems(data.perimeter)}</div>
+      </div>
+      <div class="code-section">
+        <div class="code-section-head"><span class="ico">🅿</span> Parking Lot Landscaping</div>
+        <div class="code-section-body">${renderItems(data.parking)}${parkingCalcHTML}</div>
+      </div>
+      <div class="code-section">
+        <div class="code-section-head"><span class="ico">🌳</span> Street Trees</div>
+        <div class="code-section-body">${renderItems(data.streetTrees)}</div>
+      </div>
+      <div class="code-section">
+        <div class="code-section-head"><span class="ico">🌲</span> Tree Conservation / Retention</div>
+        <div class="code-section-body">${renderItems(data.trees)}</div>
+      </div>
+    </div>
+
+    <div class="code-section sections-grid full" style="margin-bottom:16px">
+      <div class="code-section-head"><span class="ico">📋</span> Plans &amp; Submittals</div>
+      <div class="code-section-body">${renderItems(data.plans)}</div>
+    </div>
+
+    <div class="action-box">
+      <h4>📌 Key Calculations &amp; Action Items</h4>
+      ${data.actions.map(a => `<div class="action-item">${a}</div>`).join('')}
+      ${notes ? `<div class="action-item" style="color:#555;font-style:italic">Notes: ${notes}</div>` : ''}
+    </div>
+
+    <div class="report-footer">
+      Generated ${rDate} · WA Landscape Code Tool v3.1 · Prepared by: ${prepBy} · Always verify with jurisdiction
+    </div>
+  `;
+
+  document.getElementById('placeholder').style.display = 'none';
+  document.getElementById('report').style.display = 'block';
+  document.getElementById('report').innerHTML = reportHTML;
+  document.getElementById('report').scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetAll() {
+  document.querySelectorAll('input, select, textarea').forEach(el => el.value = '');
+  document.getElementById('planZone').innerHTML = '<option value="">— Select Zone —</option>';
+  document.getElementById('ndaResult').textContent = '— ac';
+  document.getElementById('placeholder').style.display = 'block';
+  document.getElementById('report').style.display = 'none';
+  document.getElementById('report').innerHTML = '';
+}
+
+// Set default date
+document.getElementById('reportDate').value = new Date().toLocaleDateString('en-US');
+</script>
+</body>
+</html>
